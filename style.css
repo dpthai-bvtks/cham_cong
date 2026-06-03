@@ -219,13 +219,15 @@ body {
 
 /* Tables */
 .table-container {
-  overflow-x: auto;
+  overflow: auto;
   width: 100%;
+  max-height: calc(100vh - 180px);
 }
 
 .data-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate; /* Required for sticky borders to look perfect */
+  border-spacing: 0;
   white-space: nowrap;
 }
 
@@ -233,6 +235,7 @@ body {
   padding: 12px 16px;
   text-align: left;
   border-bottom: 1px solid var(--border-color);
+  background-color: #ffffff;
 }
 
 .data-table th {
@@ -244,15 +247,28 @@ body {
   color: var(--text-muted);
   position: sticky;
   top: 0;
-  z-index: 2;
+  z-index: 10;
+  border-top: 1px solid var(--border-color);
+}
+
+.data-table th:first-child,
+.data-table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  border-right: 1px solid var(--border-color);
+}
+
+.data-table th:first-child {
+  z-index: 15;
 }
 
 .data-table tbody tr {
   transition: var(--transition);
 }
 
-.data-table tbody tr:hover {
-  background-color: rgba(67, 97, 238, 0.03);
+.data-table tbody tr:hover td {
+  background-color: #f4f6fe;
 }
 
 /* Form Controls in Table */
