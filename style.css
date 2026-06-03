@@ -263,6 +263,18 @@ body {
   z-index: 15;
 }
 
+.data-table th:last-child,
+.data-table td:last-child {
+  position: sticky;
+  right: 0;
+  z-index: 5;
+  border-left: 1px solid var(--border-color);
+}
+
+.data-table th:last-child {
+  z-index: 15;
+}
+
 .data-table tbody tr {
   transition: var(--transition);
 }
