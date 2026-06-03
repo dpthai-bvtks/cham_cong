@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initEmployeeManager();
   initExcelUploader();
   initExportExcel();
+  initModal();
 });
 
 // --- UI & TAB QUẢN LÝ ---
@@ -116,19 +117,46 @@ function initEmployeeManager() {
       input.value = '';
     }
   });
+
+  // Cho phép bấm Enter để thêm
+  input.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      btnAdd.click();
+    }
+  });
 }
 
 function saveEmployeesLocally() {
   localStorage.setItem('med_employees', JSON.stringify(employees));
 }
 
+let confirmCallback = null;
+
+function showConfirm(title, message, onConfirm) {
+  document.getElementById('confirm-title').innerText = title;
+  document.getElementById('confirm-message').innerText = message;
+  confirmCallback = onConfirm;
+  document.getElementById('confirm-modal').classList.add('show');
+}
+
+function initModal() {
+  document.getElementById('btn-confirm-cancel').addEventListener('click', () => {
+    document.getElementById('confirm-modal').classList.remove('show');
+  });
+  
+  document.getElementById('btn-confirm-ok').addEventListener('click', () => {
+    document.getElementById('confirm-modal').classList.remove('show');
+    if (confirmCallback) confirmCallback();
+  });
+}
+
 function removeEmployee(index) {
-  if (confirm(`Xóa nhân viên ${employees[index]}?`)) {
+  showConfirm('Xác nhận xóa', `Bạn có chắc chắn muốn xóa nhân viên "${employees[index]}"?`, () => {
     employees.splice(index, 1);
     saveEmployeesLocally();
     renderEmployeesTable();
     renderChamCongTable();
-  }
+  });
 }
 
 function renderEmployeesTable() {

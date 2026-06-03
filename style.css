@@ -436,3 +436,82 @@ select.cell-select.val-ca-ngay { background-color: rgba(67, 97, 238, 0.1); color
   margin-top: 12px;
   font-style: italic;
 }
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.modal-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-content {
+  background-color: var(--bg-card);
+  border-radius: var(--radius-lg);
+  width: 400px;
+  max-width: 90%;
+  box-shadow: var(--shadow-lg);
+  transform: scale(0.9);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.modal-overlay.show .modal-content {
+  transform: scale(1);
+}
+
+.modal-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-header i {
+  font-size: 1.8rem;
+  color: var(--warning-color);
+}
+
+.modal-header h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.modal-body {
+  padding: 24px 20px;
+  font-size: 1rem;
+  color: var(--text-main);
+}
+
+.modal-footer {
+  padding: 16px 20px;
+  background-color: #f8f9fa;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn-secondary {
+  background-color: #e9ecef;
+  color: var(--text-main);
+}
+
+.btn-secondary:hover {
+  background-color: #dee2e6;
+}
