@@ -585,48 +585,151 @@ function initExportExcel() {
       
       const arrayBuffer = await response.arrayBuffer();
       
-      // Dùng ExcelJS để giữ nguyên mọi định dạng, viền, công thức
       const workbook = new ExcelJS.Workbook();
       await workbook.xlsx.load(arrayBuffer);
-      const ws = workbook.getWorksheet(1); // Lấy sheet đầu tiên
+      
+      const getCellValueStr = (cell) => {
+        let val = cell.value;
+        if (val && typeof val === 'object') {
+          if (val.richText) return val.richText.map(r => r.text).join('');
+          if (val.result !== undefined) return val.result;
+        }
+        return val ? String(val).trim() : '';
+      };
 
-      // Ghi tháng năm vào ô A5
-      if (currentMonthYear) {
-        const [year, month] = currentMonthYear.split('-');
-        ws.getCell('A5').value = `THÁNG ${month} NĂM ${year}`;
+      const updateDateInSheet = (ws) => {
+        if (!ws) return;
+        ws.eachRow((row) => {
+          row.eachCell((cell) => {
+            const cellStr = getCellValueStr(cell);
+            if (cellStr && cellStr.includes('Mạo Khê, ngày')) {
+              const [y, m] = currentMonthYear.split('-');
+              const lastDay = new Date(y, m, 0).getDate();
+              cell.value = `Mạo Khê, ngày ${String(lastDay).padStart(2, '0')} tháng ${m} năm ${y}`;
+            }
+          });
+        });
+      };
+
+      const priceL1 = 37500;
+      const priceL2 = 19500;
+      const priceL3 = 15000;
+      let totalL1 = 0, totalL2 = 0, totalL3 = 0;
+
+      // ================= SHEET 1 =================
+      const ws1 = workbook.getWorksheet(1);
+      if (ws1) {
+        if (currentMonthYear) {
+          const [y, m] = currentMonthYear.split('-');
+          ws1.getCell('A5').value = `THÁNG ${m} NĂM ${y}`;
+        }
+        updateDateInSheet(ws1);
+
+        let row1 = 10;
+        while (true) {
+          const cell = ws1.getCell(`B${row1}`);
+          const cellStr = getCellValueStr(cell);
+          if (!cellStr || cellStr.includes('TỔNG') || cellStr === '0') break; 
+          
+          const empName = cellStr.normalize('NFC').toLowerCase().trim();
+          
+          let stats = null;
+          for (const [key, value] of Object.entries(thuThuatData)) {
+            if (key.normalize('NFC').toLowerCase().trim() === empName) {
+              stats = value;
+              break;
+            }
+          }
+          
+          if (stats) {
+            totalL1 += stats.loai1 || 0;
+            totalL2 += stats.loai2 || 0;
+            totalL3 += stats.loai3 || 0;
+
+            if (stats.loai1 > 0) {
+              ws1.getCell(`C${row1}`).value = stats.loai1;
+              ws1.getCell(`D${row1}`).value = stats.loai1 * priceL1;
+            }
+            if (stats.loai2 > 0) {
+              ws1.getCell(`E${row1}`).value = stats.loai2;
+              ws1.getCell(`F${row1}`).value = stats.loai2 * priceL2;
+            }
+            if (stats.loai3 > 0) {
+              ws1.getCell(`G${row1}`).value = stats.loai3;
+              ws1.getCell(`H${row1}`).value = stats.loai3 * priceL3;
+            }
+            const rowMoney = (stats.loai1 * priceL1) + (stats.loai2 * priceL2) + (stats.loai3 * priceL3);
+            if (rowMoney > 0) ws1.getCell(`I${row1}`).value = rowMoney;
+          }
+          row1++;
+        }
+        
+        // Điền tổng cộng ở cuối bảng Sheet 1
+        ws1.getCell(`C${row1}`).value = totalL1;
+        ws1.getCell(`D${row1}`).value = totalL1 * priceL1;
+        ws1.getCell(`E${row1}`).value = totalL2;
+        ws1.getCell(`F${row1}`).value = totalL2 * priceL2;
+        ws1.getCell(`G${row1}`).value = totalL3;
+        ws1.getCell(`H${row1}`).value = totalL3 * priceL3;
+        ws1.getCell(`I${row1}`).value = (totalL1 * priceL1) + (totalL2 * priceL2) + (totalL3 * priceL3);
       }
 
-      // Dữ liệu mẫu bắt đầu từ dòng 10
-      let rowIdx = 10;
-      while (true) {
-        const cell = ws.getCell(`B${rowIdx}`);
-        
-        let cellVal = cell.value;
-        if (cellVal && typeof cellVal === 'object') {
-          if (cellVal.richText) cellVal = cellVal.richText.map(r => r.text).join('');
-          else if (cellVal.result !== undefined) cellVal = cellVal.result;
+      // ================= SHEET 2 =================
+      const ws2 = workbook.getWorksheet(2);
+      if (ws2) {
+        if (currentMonthYear) {
+          const [y, m] = currentMonthYear.split('-');
+          ws2.getCell('A5').value = `THÁNG ${m} NĂM ${y}`;
         }
-        
-        if (!cellVal || String(cellVal).trim() === '') break; // Dừng khi hết danh sách
-        
-        const empName = String(cellVal).normalize('NFC').toLowerCase().trim();
-        
-        let stats = null;
-        for (const [key, value] of Object.entries(thuThuatData)) {
-          if (key.normalize('NFC').toLowerCase().trim() === empName) {
-            stats = value;
-            break;
+        updateDateInSheet(ws2);
+
+        ws2.getCell('B8').value = totalL1;
+        ws2.getCell('D8').value = totalL1 * priceL1;
+
+        ws2.getCell('B9').value = totalL2;
+        ws2.getCell('D9').value = totalL2 * priceL2;
+
+        ws2.getCell('B10').value = totalL3;
+        ws2.getCell('D10').value = totalL3 * priceL3;
+
+        ws2.getCell('B11').value = totalL1 + totalL2 + totalL3;
+        ws2.getCell('D11').value = (totalL1 * priceL1) + (totalL2 * priceL2) + (totalL3 * priceL3);
+      }
+
+      // ================= SHEET 3 =================
+      const ws3 = workbook.getWorksheet(3);
+      if (ws3) {
+        if (currentMonthYear) {
+          const [y, m] = currentMonthYear.split('-');
+          ws3.getCell('A5').value = `THÁNG ${m} NĂM ${y}`;
+        }
+        updateDateInSheet(ws3);
+
+        let row3 = 7;
+        while (true) {
+          const cell = ws3.getCell(`B${row3}`);
+          const cellStr = getCellValueStr(cell);
+          if (!cellStr || cellStr.includes('CỘNG')) break;
+          
+          const empName = cellStr.normalize('NFC').toLowerCase().trim();
+          
+          let stats = null;
+          for (const [key, value] of Object.entries(thuThuatData)) {
+            if (key.normalize('NFC').toLowerCase().trim() === empName) {
+              stats = value;
+              break;
+            }
           }
+          
+          if (stats) {
+            const rowMoney = (stats.loai1 * priceL1) + (stats.loai2 * priceL2) + (stats.loai3 * priceL3);
+            if (rowMoney > 0) ws3.getCell(`I${row3}`).value = rowMoney;
+          }
+          row3++;
         }
         
-        if (stats) {
-          // Cập nhật số lượng vào C (L1), E (L2), G (L3)
-          if (stats.loai1 > 0) ws.getCell(`C${rowIdx}`).value = stats.loai1;
-          if (stats.loai2 > 0) ws.getCell(`E${rowIdx}`).value = stats.loai2;
-          if (stats.loai3 > 0) ws.getCell(`G${rowIdx}`).value = stats.loai3;
-        }
-        
-        rowIdx++;
+        // Cập nhật tổng tiền Sheet 3
+        ws3.getCell(`I${row3}`).value = (totalL1 * priceL1) + (totalL2 * priceL2) + (totalL3 * priceL3);
       }
       
       // Tải xuống file xuất
