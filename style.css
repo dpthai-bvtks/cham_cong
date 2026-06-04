@@ -293,27 +293,39 @@ body {
 }
 
 /* Form Controls in Table */
-select.cell-select {
-  padding: 6px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  font-size: 0.9rem;
-  font-family: inherit;
-  outline: none;
-  background-color: transparent;
-  width: 100%;
-  text-align: center;
-  text-align-last: center;
+.cell-checkbox-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  padding: 4px 8px;
+  border-radius: 6px;
   transition: var(--transition);
+  border: 1px solid transparent;
+  min-width: 70px;
 }
 
-select.cell-select:focus {
-  border-color: var(--primary-color);
+.cell-checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  margin: 0;
+  user-select: none;
 }
 
-select.cell-select.val-sang { background-color: rgba(76, 201, 240, 0.1); color: var(--success-dark); font-weight: 500;}
-select.cell-select.val-chieu { background-color: rgba(247, 37, 133, 0.1); color: var(--warning-color); font-weight: 500;}
-select.cell-select.val-ca-ngay { background-color: rgba(67, 97, 238, 0.1); color: var(--primary-color); font-weight: 500;}
+.cell-checkbox-group input[type="checkbox"] {
+  cursor: pointer;
+  width: 14px;
+  height: 14px;
+  accent-color: var(--primary-color);
+}
+
+.cell-checkbox-group.val-sang { background-color: rgba(76, 201, 240, 0.15); color: var(--success-dark); font-weight: 500; border-color: rgba(76, 201, 240, 0.4); }
+.cell-checkbox-group.val-chieu { background-color: rgba(247, 37, 133, 0.15); color: var(--warning-color); font-weight: 500; border-color: rgba(247, 37, 133, 0.4); }
+.cell-checkbox-group.val-ca-ngay { background-color: rgba(67, 97, 238, 0.15); color: var(--primary-color); font-weight: 600; border-color: rgba(67, 97, 238, 0.4); }
 
 /* Upload Area */
 .upload-area {

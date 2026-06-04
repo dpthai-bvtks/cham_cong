@@ -370,13 +370,11 @@ function renderChamCongTable() {
       else if (val === 'ca-ngay') { colorClass = 'val-ca-ngay'; tongCong += 1; }
 
       rowHtml += `
-        <td class="text-center">
-          <select class="cell-select ${colorClass}" data-emp="${emp}" data-day="${d}">
-            <option value="">-</option>
-            <option value="sang" ${val === 'sang' ? 'selected' : ''}>Sáng</option>
-            <option value="chieu" ${val === 'chieu' ? 'selected' : ''}>Chiều</option>
-            <option value="ca-ngay" ${val === 'ca-ngay' ? 'selected' : ''}>Cả ngày</option>
-          </select>
+        <td class="text-center" style="vertical-align: middle;">
+          <div class="cell-checkbox-group ${colorClass}" id="group-${emp.replace(/\s+/g, '')}-${d}">
+            <label><input type="checkbox" class="cb-sang" data-emp="${emp}" data-day="${d}" ${val === 'sang' || val === 'ca-ngay' ? 'checked' : ''}> Sáng</label>
+            <label><input type="checkbox" class="cb-chieu" data-emp="${emp}" data-day="${d}" ${val === 'chieu' || val === 'ca-ngay' ? 'checked' : ''}> Chiều</label>
+          </div>
         </td>
       `;
     }
@@ -386,18 +384,32 @@ function renderChamCongTable() {
   });
 
   // Gán sự kiện thay đổi
-  document.querySelectorAll('.cell-select').forEach(select => {
-    select.addEventListener('change', (e) => {
+  document.querySelectorAll('.cb-sang, .cb-chieu').forEach(cb => {
+    cb.addEventListener('change', (e) => {
       const emp = e.target.getAttribute('data-emp');
       const day = e.target.getAttribute('data-day');
-      const val = e.target.value;
+      
+      const groupId = `group-${emp.replace(/\s+/g, '')}-${day}`;
+      const group = document.getElementById(groupId);
+      
+      const cbSang = group.querySelector('.cb-sang').checked;
+      const cbChieu = group.querySelector('.cb-chieu').checked;
+      
+      let val = '';
+      if (cbSang && cbChieu) val = 'ca-ngay';
+      else if (cbSang) val = 'sang';
+      else if (cbChieu) val = 'chieu';
 
-      // Cập nhật màu select
-      e.target.className = 'cell-select';
-      if (val) e.target.classList.add(`val-${val}`);
+      // Cập nhật màu group
+      group.className = 'cell-checkbox-group';
+      if (val) group.classList.add(`val-${val}`);
 
       // Lưu vào state
-      chamCongData[emp][day] = val;
+      if (val) {
+        chamCongData[emp][day] = val;
+      } else {
+        delete chamCongData[emp][day];
+      }
 
       // Tính lại tổng công cho row đó
       recalculateRowTotal(emp, daysInMonth);
