@@ -283,6 +283,10 @@ body {
   background-color: #f4f6fe;
 }
 
+.text-center {
+  text-align: center !important;
+}
+
 /* Form Controls in Table */
 select.cell-select {
   padding: 6px;
@@ -293,6 +297,8 @@ select.cell-select {
   outline: none;
   background-color: transparent;
   width: 100%;
+  text-align: center;
+  text-align-last: center;
   transition: var(--transition);
 }
 

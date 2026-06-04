@@ -282,7 +282,7 @@ function renderChamCongTable() {
       else if (val === 'ca-ngay') { colorClass = 'val-ca-ngay'; tongCong += 1; }
 
       rowHtml += `
-        <td>
+        <td class="text-center">
           <select class="cell-select ${colorClass}" data-emp="${emp}" data-day="${d}">
             <option value="">-</option>
             <option value="sang" ${val === 'sang' ? 'selected' : ''}>Sáng</option>
@@ -292,7 +292,7 @@ function renderChamCongTable() {
         </td>
       `;
     }
-    rowHtml += `<td class="tong-cong-cell" data-emp-total="${emp}"><strong>${tongCong}</strong></td>`;
+    rowHtml += `<td class="tong-cong-cell text-center" data-emp-total="${emp}"><strong>${tongCong}</strong></td>`;
     tr.innerHTML = rowHtml;
     tbody.appendChild(tr);
   });
@@ -398,17 +398,41 @@ function processExcelData(dataRows) {
   const tbody = document.getElementById('preview-thuthuat-body');
   tbody.innerHTML = '';
 
+  let tongL1 = 0, tongL2 = 0, tongL3 = 0, tongKhac = 0, tongTatCa = 0;
+
   for (const [emp, stats] of Object.entries(thuThuatData)) {
+    const l1 = stats.loai1 || 0;
+    const l2 = stats.loai2 || 0;
+    const l3 = stats.loai3 || 0;
+    const khac = stats.khac || 0;
+    const total = l1 + l2 + l3 + khac;
+
+    tongL1 += l1; tongL2 += l2; tongL3 += l3; tongKhac += khac; tongTatCa += total;
+
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><strong>${emp}</strong></td>
-      <td>${stats.loai1 || 0}</td>
-      <td>${stats.loai2 || 0}</td>
-      <td>${stats.loai3 || 0}</td>
-      <td>${stats.khac || 0}</td>
+      <td class="text-center">${l1}</td>
+      <td class="text-center">${l2}</td>
+      <td class="text-center">${l3}</td>
+      <td class="text-center">${khac}</td>
+      <td class="text-center" style="color: var(--primary-color); font-weight: bold;">${total}</td>
     `;
     tbody.appendChild(tr);
   }
+
+  // Row tổng
+  const trTotal = document.createElement('tr');
+  trTotal.style.backgroundColor = '#f8f9fc';
+  trTotal.innerHTML = `
+    <td><strong>TỔNG CỘNG</strong></td>
+    <td class="text-center"><strong>${tongL1}</strong></td>
+    <td class="text-center"><strong>${tongL2}</strong></td>
+    <td class="text-center"><strong>${tongL3}</strong></td>
+    <td class="text-center"><strong>${tongKhac}</strong></td>
+    <td class="text-center" style="color: var(--primary-color); font-weight: bold;">${tongTatCa}</td>
+  `;
+  tbody.appendChild(trTotal);
 
   document.getElementById('preview-section').classList.remove('hidden');
   renderEmployeesTable(); // Cập nhật lại UI ds nhân viên
@@ -420,6 +444,9 @@ function renderThongKeTable() {
   const tbody = document.getElementById('thongke-body');
   tbody.innerHTML = '';
 
+  let tongCongThang = 0;
+  let tongL1 = 0, tongL2 = 0, tongL3 = 0, tongKhac = 0, tongTatCa = 0;
+
   employees.forEach(emp => {
     // Tính tổng công
     let tongCong = 0;
@@ -429,21 +456,43 @@ function renderThongKeTable() {
         else if (val === 'ca-ngay') tongCong += 1;
       });
     }
+    tongCongThang += tongCong;
 
     // Lấy thủ thuật
     const stats = thuThuatData[emp] || { loai1: 0, loai2: 0, loai3: 0, khac: 0 };
+    const l1 = stats.loai1 || 0;
+    const l2 = stats.loai2 || 0;
+    const l3 = stats.loai3 || 0;
+    const khac = stats.khac || 0;
+    const total = l1 + l2 + l3 + khac;
+
+    tongL1 += l1; tongL2 += l2; tongL3 += l3; tongKhac += khac; tongTatCa += total;
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><strong>${emp}</strong></td>
-      <td style="color: var(--primary-color); font-weight: bold;">${tongCong}</td>
-      <td>${stats.loai1 || 0}</td>
-      <td>${stats.loai2 || 0}</td>
-      <td>${stats.loai3 || 0}</td>
-      <td>${stats.khac || 0}</td>
+      <td class="text-center" style="color: var(--primary-color); font-weight: bold;">${tongCong}</td>
+      <td class="text-center">${l1}</td>
+      <td class="text-center">${l2}</td>
+      <td class="text-center">${l3}</td>
+      <td class="text-center">${khac}</td>
+      <td class="text-center" style="color: var(--primary-color); font-weight: bold;">${total}</td>
     `;
     tbody.appendChild(tr);
   });
+
+  const trTotal = document.createElement('tr');
+  trTotal.style.backgroundColor = '#f8f9fc';
+  trTotal.innerHTML = `
+    <td><strong>TỔNG CỘNG</strong></td>
+    <td class="text-center" style="color: var(--primary-color); font-weight: bold;">${tongCongThang}</td>
+    <td class="text-center"><strong>${tongL1}</strong></td>
+    <td class="text-center"><strong>${tongL2}</strong></td>
+    <td class="text-center"><strong>${tongL3}</strong></td>
+    <td class="text-center"><strong>${tongKhac}</strong></td>
+    <td class="text-center" style="color: var(--primary-color); font-weight: bold;">${tongTatCa}</td>
+  `;
+  tbody.appendChild(trTotal);
 }
 
 function initExportExcel() {
