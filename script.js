@@ -135,6 +135,11 @@ function showConfirm(title, message, onConfirm) {
   document.getElementById('confirm-message').innerText = message;
   confirmCallback = onConfirm;
   document.getElementById('confirm-modal').classList.add('show');
+  
+  // Tự động focus vào nút OK để người dùng có thể ấn Enter ngay lập tức
+  setTimeout(() => {
+    document.getElementById('btn-confirm-ok').focus();
+  }, 100);
 }
 
 function initModal() {
