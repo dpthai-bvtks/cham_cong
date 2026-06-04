@@ -6,11 +6,7 @@ const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxNQXg2uLWsAt8Lg
 
 // Trạng thái ứng dụng
 let currentMonthYear = '';
-let employees = JSON.parse(localStorage.getItem('med_employees')) || [
-  'Nguyễn Văn A',
-  'Trần Thị B',
-  'Lê Văn C'
-];
+let employees = JSON.parse(localStorage.getItem('med_employees')) || [];
 let chamCongData = {}; // { "Nguyễn Văn A": { "1": "sang", "2": "ca-ngay", ... } }
 let thuThuatData = {}; // { "Nguyễn Văn A": { loai1: 0, loai2: 0, loai3: 0 } }
 
@@ -154,10 +150,20 @@ function initModal() {
 
 function removeEmployee(index) {
   showConfirm('Xác nhận xóa', `Bạn có chắc chắn muốn xóa nhân viên "${employees[index]}"?`, () => {
+    const empName = employees[index];
     employees.splice(index, 1);
+    
+    // Xóa vĩnh viễn trên bộ nhớ tạm
+    if (chamCongData[empName]) delete chamCongData[empName];
+    if (thuThuatData[empName]) delete thuThuatData[empName];
+    
     saveEmployeesLocally();
     renderEmployeesTable();
     renderChamCongTable();
+    
+    // Đồng bộ lệnh xóa lên máy chủ
+    triggerAutoSaveChamCong();
+    saveThuThuatToServer();
   });
 }
 
