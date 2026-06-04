@@ -597,6 +597,19 @@ function initExportExcel() {
         return val ? String(val).trim() : '';
       };
 
+      const setCellValueSafe = (ws, cellRef, newValue) => {
+        const cell = ws.getCell(cellRef);
+        if (cell.type === 6 || cell.formula || cell.sharedFormula) { // 6 is Formula type
+          cell.value = {
+            formula: cell.formula,
+            sharedFormula: cell.sharedFormula,
+            result: newValue
+          };
+        } else {
+          cell.value = newValue;
+        }
+      };
+
       const updateDateInSheet = (ws) => {
         if (!ws) return;
         ws.eachRow((row) => {
@@ -605,7 +618,7 @@ function initExportExcel() {
             if (cellStr && cellStr.includes('Mạo Khê, ngày')) {
               const [y, m] = currentMonthYear.split('-');
               const lastDay = new Date(y, m, 0).getDate();
-              cell.value = `Mạo Khê, ngày ${String(lastDay).padStart(2, '0')} tháng ${m} năm ${y}`;
+              setCellValueSafe(ws, cell.address, `Mạo Khê, ngày ${String(lastDay).padStart(2, '0')} tháng ${m} năm ${y}`);
             }
           });
         });
@@ -621,7 +634,7 @@ function initExportExcel() {
       if (ws1) {
         if (currentMonthYear) {
           const [y, m] = currentMonthYear.split('-');
-          ws1.getCell('A5').value = `THÁNG ${m} NĂM ${y}`;
+          setCellValueSafe(ws1, 'A5', `THÁNG ${m} NĂM ${y}`);
         }
         updateDateInSheet(ws1);
 
@@ -647,31 +660,31 @@ function initExportExcel() {
             totalL3 += stats.loai3 || 0;
 
             if (stats.loai1 > 0) {
-              ws1.getCell(`C${row1}`).value = stats.loai1;
-              ws1.getCell(`D${row1}`).value = stats.loai1 * priceL1;
+              setCellValueSafe(ws1, `C${row1}`, stats.loai1);
+              setCellValueSafe(ws1, `D${row1}`, stats.loai1 * priceL1);
             }
             if (stats.loai2 > 0) {
-              ws1.getCell(`E${row1}`).value = stats.loai2;
-              ws1.getCell(`F${row1}`).value = stats.loai2 * priceL2;
+              setCellValueSafe(ws1, `E${row1}`, stats.loai2);
+              setCellValueSafe(ws1, `F${row1}`, stats.loai2 * priceL2);
             }
             if (stats.loai3 > 0) {
-              ws1.getCell(`G${row1}`).value = stats.loai3;
-              ws1.getCell(`H${row1}`).value = stats.loai3 * priceL3;
+              setCellValueSafe(ws1, `G${row1}`, stats.loai3);
+              setCellValueSafe(ws1, `H${row1}`, stats.loai3 * priceL3);
             }
             const rowMoney = (stats.loai1 * priceL1) + (stats.loai2 * priceL2) + (stats.loai3 * priceL3);
-            if (rowMoney > 0) ws1.getCell(`I${row1}`).value = rowMoney;
+            if (rowMoney > 0) setCellValueSafe(ws1, `I${row1}`, rowMoney);
           }
           row1++;
         }
         
         // Điền tổng cộng ở cuối bảng Sheet 1
-        ws1.getCell(`C${row1}`).value = totalL1;
-        ws1.getCell(`D${row1}`).value = totalL1 * priceL1;
-        ws1.getCell(`E${row1}`).value = totalL2;
-        ws1.getCell(`F${row1}`).value = totalL2 * priceL2;
-        ws1.getCell(`G${row1}`).value = totalL3;
-        ws1.getCell(`H${row1}`).value = totalL3 * priceL3;
-        ws1.getCell(`I${row1}`).value = (totalL1 * priceL1) + (totalL2 * priceL2) + (totalL3 * priceL3);
+        setCellValueSafe(ws1, `C${row1}`, totalL1);
+        setCellValueSafe(ws1, `D${row1}`, totalL1 * priceL1);
+        setCellValueSafe(ws1, `E${row1}`, totalL2);
+        setCellValueSafe(ws1, `F${row1}`, totalL2 * priceL2);
+        setCellValueSafe(ws1, `G${row1}`, totalL3);
+        setCellValueSafe(ws1, `H${row1}`, totalL3 * priceL3);
+        setCellValueSafe(ws1, `I${row1}`, (totalL1 * priceL1) + (totalL2 * priceL2) + (totalL3 * priceL3));
       }
 
       // ================= SHEET 2 =================
@@ -679,21 +692,21 @@ function initExportExcel() {
       if (ws2) {
         if (currentMonthYear) {
           const [y, m] = currentMonthYear.split('-');
-          ws2.getCell('A5').value = `THÁNG ${m} NĂM ${y}`;
+          setCellValueSafe(ws2, 'A5', `THÁNG ${m} NĂM ${y}`);
         }
         updateDateInSheet(ws2);
 
-        ws2.getCell('B8').value = totalL1;
-        ws2.getCell('D8').value = totalL1 * priceL1;
+        setCellValueSafe(ws2, 'B8', totalL1);
+        setCellValueSafe(ws2, 'D8', totalL1 * priceL1);
 
-        ws2.getCell('B9').value = totalL2;
-        ws2.getCell('D9').value = totalL2 * priceL2;
+        setCellValueSafe(ws2, 'B9', totalL2);
+        setCellValueSafe(ws2, 'D9', totalL2 * priceL2);
 
-        ws2.getCell('B10').value = totalL3;
-        ws2.getCell('D10').value = totalL3 * priceL3;
+        setCellValueSafe(ws2, 'B10', totalL3);
+        setCellValueSafe(ws2, 'D10', totalL3 * priceL3);
 
-        ws2.getCell('B11').value = totalL1 + totalL2 + totalL3;
-        ws2.getCell('D11').value = (totalL1 * priceL1) + (totalL2 * priceL2) + (totalL3 * priceL3);
+        setCellValueSafe(ws2, 'B11', totalL1 + totalL2 + totalL3);
+        setCellValueSafe(ws2, 'D11', (totalL1 * priceL1) + (totalL2 * priceL2) + (totalL3 * priceL3));
       }
 
       // ================= SHEET 3 =================
@@ -701,7 +714,7 @@ function initExportExcel() {
       if (ws3) {
         if (currentMonthYear) {
           const [y, m] = currentMonthYear.split('-');
-          ws3.getCell('A5').value = `THÁNG ${m} NĂM ${y}`;
+          setCellValueSafe(ws3, 'A5', `THÁNG ${m} NĂM ${y}`);
         }
         updateDateInSheet(ws3);
 
@@ -723,13 +736,13 @@ function initExportExcel() {
           
           if (stats) {
             const rowMoney = (stats.loai1 * priceL1) + (stats.loai2 * priceL2) + (stats.loai3 * priceL3);
-            if (rowMoney > 0) ws3.getCell(`I${row3}`).value = rowMoney;
+            if (rowMoney > 0) setCellValueSafe(ws3, `I${row3}`, rowMoney);
           }
           row3++;
         }
         
         // Cập nhật tổng tiền Sheet 3
-        ws3.getCell(`I${row3}`).value = (totalL1 * priceL1) + (totalL2 * priceL2) + (totalL3 * priceL3);
+        setCellValueSafe(ws3, `I${row3}`, (totalL1 * priceL1) + (totalL2 * priceL2) + (totalL3 * priceL3));
       }
       
       // Tải xuống file xuất
