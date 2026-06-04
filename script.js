@@ -576,10 +576,65 @@ function renderThongKeTable() {
 }
 
 function initExportExcel() {
-  document.getElementById('btn-export-excel').addEventListener('click', () => {
-    const table = document.getElementById('table-thongke');
-    const wb = XLSX.utils.table_to_book(table, { sheet: "Thống Kê" });
-    XLSX.writeFile(wb, `ThongKe_${currentMonthYear}.xlsx`);
+  document.getElementById('btn-export-excel').addEventListener('click', async () => {
+    try {
+      showLoading(true);
+      // Tải file mẫu từ server
+      const response = await fetch('mau-bang-tien.xlsx');
+      if (!response.ok) throw new Error("Không tìm thấy file mẫu mau-bang-tien.xlsx");
+      
+      const arrayBuffer = await response.arrayBuffer();
+      // cellStyles: true để cố gắng giữ lại định dạng nếu có thể
+      const wb = XLSX.read(arrayBuffer, { type: 'array', cellStyles: true });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+
+      // Ghi tháng năm vào ô A5
+      if (currentMonthYear) {
+        const [year, month] = currentMonthYear.split('-');
+        ws['A5'] = { v: `THÁNG ${month} NĂM ${year}`, t: 's' };
+      }
+
+      const range = XLSX.utils.decode_range(ws['!ref']);
+      
+      // Dữ liệu mẫu bắt đầu từ dòng 10 (index 9)
+      for (let R = 9; R <= range.e.r; ++R) {
+        const cellNameRef = XLSX.utils.encode_cell({c: 1, r: R}); // Cột B (index 1)
+        const cellName = ws[cellNameRef];
+        if (!cellName || !cellName.v) continue;
+        
+        const empName = String(cellName.v).normalize('NFC').toLowerCase().trim();
+        
+        let stats = null;
+        for (const [key, value] of Object.entries(thuThuatData)) {
+          if (key.normalize('NFC').toLowerCase().trim() === empName) {
+            stats = value;
+            break;
+          }
+        }
+        
+        if (stats) {
+          const updateCell = (col, val) => {
+            if (val > 0) {
+              const cellRef = XLSX.utils.encode_cell({c: col, r: R});
+              if (!ws[cellRef]) ws[cellRef] = {};
+              ws[cellRef].v = val;
+              ws[cellRef].t = 'n';
+            }
+          };
+          // Cột C (2) - L1, Cột E (4) - L2, Cột G (6) - L3
+          updateCell(2, stats.loai1);
+          updateCell(4, stats.loai2);
+          updateCell(6, stats.loai3);
+        }
+      }
+      
+      XLSX.writeFile(wb, `Bang_Tien_${currentMonthYear || 'ThongKe'}.xlsx`);
+    } catch (err) {
+      console.error(err);
+      alert("Lỗi xuất file: " + err.message);
+    } finally {
+      showLoading(false);
+    }
   });
 }
 
