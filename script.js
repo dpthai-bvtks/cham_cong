@@ -671,6 +671,11 @@ function fetchDataFromServer() {
 
         renderEmployeesTable();
         renderChamCongTable();
+        
+        // Cập nhật bảng thống kê nếu đang ở tab đó
+        if (document.getElementById('tab-thongke').classList.contains('active')) {
+          renderThongKeTable();
+        }
 
         // Render data preview thủ thuật (nếu có)
         const tbody = document.getElementById('preview-thuthuat-body');
