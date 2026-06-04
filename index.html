@@ -84,10 +84,6 @@
           <i class='bx bx-calendar-check'></i>
           <span>Bảng Chấm Công</span>
         </li>
-        <li data-tab="tab-thuthuat">
-          <i class='bx bx-upload'></i>
-          <span>Tải File Thủ Thuật</span>
-        </li>
         <li data-tab="tab-thongke">
           <i class='bx bx-bar-chart-alt-2'></i>
           <span>Thống Kê Tổng Hợp</span>
@@ -142,57 +138,53 @@
         </div>
       </section>
 
-      <!-- TAB: Tải Thủ Thuật -->
-      <section id="tab-thuthuat" class="tab-pane">
-        <div class="card">
-          <div class="card-header">
-            <h3>Tải lên dữ liệu thủ thuật</h3>
-            <div>
-              <input type="file" id="excel-file-input" accept=".xlsx, .xls" hidden>
-              <button class="btn btn-primary" onclick="document.getElementById('excel-file-input').click()">
-                <i class='bx bx-file'></i> Chọn File Excel
-              </button>
-            </div>
-          </div>
-          <div class="card-body">
-            <div id="preview-section" class="hidden">
-              <div class="preview-header">
-                <h4>Xem trước dữ liệu</h4>
-                <button class="btn btn-success" id="btn-submit-thuthuat">
-                  <i class='bx bx-cloud-upload'></i> Xác nhận gửi lên bộ nhớ
-                </button>
-              </div>
-              <div class="table-container">
-                <table id="table-preview-thuthuat" class="data-table">
-                  <thead>
-                    <tr>
-                      <th>Tên nhân viên</th>
-                      <th class="text-center">Thủ thuật loại 1</th>
-                      <th class="text-center">Thủ thuật loại 2</th>
-                      <th class="text-center">Thủ thuật loại 3</th>
-                      <th class="text-center">Thủ thuật khác</th>
-                      <th class="text-center">Tổng thủ thuật</th>
-                    </tr>
-                  </thead>
-                  <tbody id="preview-thuthuat-body">
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <!-- TAB: Thống Kê -->
       <section id="tab-thongke" class="tab-pane">
         <div class="card">
           <div class="card-header">
             <h3>Báo Cáo Tổng Hợp Tháng</h3>
-            <button class="btn btn-primary" id="btn-export-excel">
-              <i class='bx bx-export'></i> Xuất Báo Cáo
-            </button>
+            <div style="display: flex; gap: 10px;">
+              <input type="file" id="excel-file-input" accept=".xlsx, .xls" hidden>
+              <button class="btn btn-success" onclick="document.getElementById('excel-file-input').click()">
+                <i class='bx bx-upload'></i> Tải File Thủ Thuật
+              </button>
+              <button class="btn btn-primary" id="btn-export-excel">
+                <i class='bx bx-export'></i> Xuất Báo Cáo
+              </button>
+            </div>
           </div>
-          <div class="table-container">
+          
+          <!-- BẢNG XEM TRƯỚC -->
+          <div id="preview-section" class="hidden" style="margin: 15px; border: 2px dashed var(--primary-color); padding: 15px; border-radius: 8px; background-color: #f8faff;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+              <h4 style="color: var(--primary-color); margin: 0;"><i class='bx bx-search-alt'></i> Xem Trước Dữ Liệu Vừa Tải</h4>
+              <div style="display: flex; gap: 10px;">
+                <button class="btn btn-secondary" onclick="document.getElementById('preview-section').classList.add('hidden'); document.getElementById('main-thongke-container').classList.remove('hidden');">Hủy bỏ</button>
+                <button class="btn btn-success" id="btn-submit-thuthuat">
+                  <i class='bx bx-cloud-upload'></i> Xác nhận lưu lên máy chủ
+                </button>
+              </div>
+            </div>
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Tên nhân viên</th>
+                    <th class="text-center">Thủ thuật loại 1</th>
+                    <th class="text-center">Thủ thuật loại 2</th>
+                    <th class="text-center">Thủ thuật loại 3</th>
+                    <th class="text-center">Thủ thuật khác</th>
+                    <th class="text-center">Tổng thủ thuật</th>
+                  </tr>
+                </thead>
+                <tbody id="preview-thuthuat-body">
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- BẢNG CHÍNH THỨC -->
+          <div class="table-container" id="main-thongke-container">
             <table id="table-thongke" class="data-table">
               <thead>
                 <tr>

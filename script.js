@@ -418,47 +418,71 @@ function recalculateRowTotal(emp, daysInMonth) {
   document.querySelector(`.tong-cong-cell[data-emp-total="${emp}"]`).innerHTML = `<strong>${tong}</strong>`;
 }
 
-// --- XỬ LÝ FILE EXCEL THỦ THUẬT ---
+let tempThuThuatData = null;
+
 function initExcelUploader() {
   const fileInput = document.getElementById('excel-file-input');
-  const btnSubmit = document.getElementById('btn-submit-thuthuat');
+  if (!fileInput) return;
 
   fileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    showLoading(true);
     const reader = new FileReader();
     reader.onload = function (e) {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: 'array' });
-      const firstSheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[firstSheetName];
-      const dataRows = XLSX.utils.sheet_to_json(worksheet, { header: "A", defval: "", blankrows: true });
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const dataRows = XLSX.utils.sheet_to_json(worksheet, { header: "A", defval: "", blankrows: true });
 
-      processExcelData(dataRows);
+        processExcelData(dataRows);
+      } catch (err) {
+        console.error(err);
+        alert("Có lỗi khi đọc file Excel.");
+      } finally {
+        showLoading(false);
+      }
     };
     reader.readAsArrayBuffer(file);
+    fileInput.value = '';
   });
 
-  btnSubmit.addEventListener('click', () => {
-    saveThuThuatToServer();
-  });
+  // Sự kiện khi bấm nút Xác nhận lưu
+  const btnSubmit = document.getElementById('btn-submit-thuthuat');
+  if (btnSubmit) {
+    btnSubmit.addEventListener('click', () => {
+      if (!tempThuThuatData) return;
+      thuThuatData = tempThuThuatData; // Ghi đè vào data chính thức
+      tempThuThuatData = null;
+
+      // Đóng bảng preview, mở lại bảng chính
+      document.getElementById('preview-section').classList.add('hidden');
+      document.getElementById('main-thongke-container').classList.remove('hidden');
+
+      // Cập nhật lại UI
+      renderThongKeTable();
+      // Lưu lên server
+      saveThuThuatToServer();
+    });
+  }
 }
 
 function processExcelData(dataRows) {
-  thuThuatData = {}; // Reset data mới
+  tempThuThuatData = {}; // Dùng biến tạm
 
-  // Khởi tạo sẵn tất cả nhân viên với số 0 để bảng luôn hiển thị đủ người
+  // Khởi tạo sẵn
   employees.forEach(emp => {
-    thuThuatData[emp] = { loai1: 0, loai2: 0, loai3: 0, khac: 0 };
+    tempThuThuatData[emp] = { loai1: 0, loai2: 0, loai3: 0, khac: 0 };
   });
 
-  // Duyệt qua toàn bộ các dòng, an toàn 100%
+  // Duyệt dữ liệu
   for (let i = 0; i < dataRows.length; i++) {
     const row = dataRows[i];
     if (!row) continue;
 
-    // Đọc đích danh từ cột AN và AT
     const loaiTT = row['AN'];
     let rawEmpName = row['AT'];
 
@@ -466,76 +490,64 @@ function processExcelData(dataRows) {
     rawEmpName = String(rawEmpName).trim();
     if (!rawEmpName) continue;
     
-    // Chuẩn hóa Unicode NFC để tránh lỗi font chữ tiếng Việt (tổ hợp vs dựng sẵn)
     const rawEmpNameNormalized = rawEmpName.normalize('NFC').toLowerCase();
-
-    // Bỏ qua dòng tiêu đề
     if (rawEmpNameNormalized.includes('thủ thuật viên') || rawEmpNameNormalized.includes('tên nhân viên')) continue;
 
-    // Tìm nhân viên trong danh sách (không phân biệt hoa thường)
     const matchedEmp = employees.find(e => e.normalize('NFC').toLowerCase() === rawEmpNameNormalized);
-    
-    // CHỈ lấy nhân viên ĐÃ CÓ trong danh sách quản lý
     if (!matchedEmp) continue;
 
-    // Sử dụng tên chuẩn từ danh sách (matchedEmp)
     if (loaiTT) {
       const strLoai = String(loaiTT).normalize('NFC').toLowerCase();
-      if (strLoai.includes('loại 1')) {
-        thuThuatData[matchedEmp].loai1++;
-      } else if (strLoai.includes('loại 2')) {
-        thuThuatData[matchedEmp].loai2++;
-      } else if (strLoai.includes('loại 3')) {
-        thuThuatData[matchedEmp].loai3++;
-      } else {
-        thuThuatData[matchedEmp].khac++;
-      }
+      if (strLoai.includes('loại 1')) tempThuThuatData[matchedEmp].loai1++;
+      else if (strLoai.includes('loại 2')) tempThuThuatData[matchedEmp].loai2++;
+      else if (strLoai.includes('loại 3')) tempThuThuatData[matchedEmp].loai3++;
+      else tempThuThuatData[matchedEmp].khac++;
     }
   }
 
-  // Render preview
+  // Vẽ bảng Preview
   const tbody = document.getElementById('preview-thuthuat-body');
-  tbody.innerHTML = '';
+  if (tbody) {
+    tbody.innerHTML = '';
+    let tongL1 = 0, tongL2 = 0, tongL3 = 0, tongKhac = 0, tongTatCa = 0;
 
-  let tongL1 = 0, tongL2 = 0, tongL3 = 0, tongKhac = 0, tongTatCa = 0;
+    for (const [emp, stats] of Object.entries(tempThuThuatData)) {
+      const l1 = stats.loai1 || 0;
+      const l2 = stats.loai2 || 0;
+      const l3 = stats.loai3 || 0;
+      const khac = stats.khac || 0;
+      const total = l1 + l2 + l3 + khac;
 
-  for (const [emp, stats] of Object.entries(thuThuatData)) {
-    const l1 = stats.loai1 || 0;
-    const l2 = stats.loai2 || 0;
-    const l3 = stats.loai3 || 0;
-    const khac = stats.khac || 0;
-    const total = l1 + l2 + l3 + khac;
+      tongL1 += l1; tongL2 += l2; tongL3 += l3; tongKhac += khac; tongTatCa += total;
 
-    tongL1 += l1; tongL2 += l2; tongL3 += l3; tongKhac += khac; tongTatCa += total;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${emp}</strong></td>
+        <td class="text-center">${l1}</td>
+        <td class="text-center">${l2}</td>
+        <td class="text-center">${l3}</td>
+        <td class="text-center">${khac}</td>
+        <td class="text-center" style="color: var(--primary-color); font-weight: bold;">${total}</td>
+      `;
+      tbody.appendChild(tr);
+    }
 
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><strong>${emp}</strong></td>
-      <td class="text-center">${l1}</td>
-      <td class="text-center">${l2}</td>
-      <td class="text-center">${l3}</td>
-      <td class="text-center">${khac}</td>
-      <td class="text-center" style="color: var(--primary-color); font-weight: bold;">${total}</td>
+    const trTotal = document.createElement('tr');
+    trTotal.style.backgroundColor = '#f8f9fc';
+    trTotal.innerHTML = `
+      <td><strong>TỔNG CỘNG</strong></td>
+      <td class="text-center"><strong>${tongL1}</strong></td>
+      <td class="text-center"><strong>${tongL2}</strong></td>
+      <td class="text-center"><strong>${tongL3}</strong></td>
+      <td class="text-center"><strong>${tongKhac}</strong></td>
+      <td class="text-center" style="color: var(--primary-color); font-weight: bold;">${tongTatCa}</td>
     `;
-    tbody.appendChild(tr);
+    tbody.appendChild(trTotal);
   }
 
-  // Row tổng
-  const trTotal = document.createElement('tr');
-  trTotal.style.backgroundColor = '#f8f9fc';
-  trTotal.innerHTML = `
-    <td><strong>TỔNG CỘNG</strong></td>
-    <td class="text-center"><strong>${tongL1}</strong></td>
-    <td class="text-center"><strong>${tongL2}</strong></td>
-    <td class="text-center"><strong>${tongL3}</strong></td>
-    <td class="text-center"><strong>${tongKhac}</strong></td>
-    <td class="text-center" style="color: var(--primary-color); font-weight: bold;">${tongTatCa}</td>
-  `;
-  tbody.appendChild(trTotal);
-
+  // Ẩn bảng chính, hiện bảng preview
+  document.getElementById('main-thongke-container').classList.add('hidden');
   document.getElementById('preview-section').classList.remove('hidden');
-  renderEmployeesTable(); // Cập nhật lại UI ds nhân viên
-  renderChamCongTable(); // Cập nhật bảng chấm công
 }
 
 // --- THỐNG KÊ TỔNG HỢP ---
@@ -878,25 +890,6 @@ function fetchDataFromServer() {
         // Cập nhật bảng thống kê nếu đang ở tab đó
         if (document.getElementById('tab-thongke').classList.contains('active')) {
           renderThongKeTable();
-        }
-
-        // Render data preview thủ thuật (nếu có)
-        const tbody = document.getElementById('preview-thuthuat-body');
-        if (Object.keys(thuThuatData).length > 0) {
-          tbody.innerHTML = '';
-          for (const [emp, stats] of Object.entries(thuThuatData)) {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-            <td><strong>${emp}</strong></td>
-            <td>${stats.loai1}</td>
-            <td>${stats.loai2}</td>
-            <td>${stats.loai3}</td>
-          `;
-            tbody.appendChild(tr);
-          }
-          document.getElementById('preview-section').classList.remove('hidden');
-        } else {
-          document.getElementById('preview-section').classList.add('hidden');
         }
 
         showToast(`Đã tải dữ liệu tháng ${currentMonthYear}`);
