@@ -94,6 +94,10 @@
           <i class='bx bx-user-pin'></i>
           <span>Danh Sách Nhân Viên</span>
         </li>
+        <li data-tab="tab-kiemtra">
+          <i class='bx bx-check-shield'></i>
+          <span>Kiểm Tra Lỗi</span>
+        </li>
       </ul>
 
       <div class="sidebar-footer">
@@ -231,6 +235,58 @@
             </table>
           </div>
           <p class="note">* Danh sách này dùng chung cho toàn bộ ứng dụng và sẽ được lưu tự động cục bộ.</p>
+        </div>
+      </section>
+
+      <!-- TAB: Kiểm Tra Lỗi -->
+      <section id="tab-kiemtra" class="tab-pane">
+        <div class="card">
+          <div class="card-header">
+            <h3>Kiểm Tra Sai Sót Y Tế</h3>
+            <div>
+              <input type="file" id="error-file-input" accept=".xlsx, .xls" hidden>
+              <button class="btn btn-primary" onclick="document.getElementById('error-file-input').click()">
+                <i class='bx bx-file'></i> Chọn File Kiểm Tra
+              </button>
+            </div>
+          </div>
+          <div class="card-body">
+            <h4 style="margin-top: 15px; color: #dc3545;">Lỗi Trùng Giờ</h4>
+            <div class="table-container">
+              <table class="data-table" id="table-error-time">
+                <thead>
+                  <tr>
+                    <th style="width: 50px;">STT</th>
+                    <th style="width: 150px;">Thủ Thuật Viên</th>
+                    <th>Ca 1 (Bị đè)</th>
+                    <th>Ca 2 (Gây đè)</th>
+                    <th style="width: 250px;">Lý do</th>
+                  </tr>
+                </thead>
+                <tbody id="error-time-body">
+                  <tr><td colspan="5" class="text-center">Chưa có dữ liệu</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h4 style="margin-top: 30px; color: #fd7e14;">Lỗi Sai Quy Trình / Phân Quyền</h4>
+            <div class="table-container">
+              <table class="data-table" id="table-error-other">
+                <thead>
+                  <tr>
+                    <th style="width: 50px;">STT</th>
+                    <th style="width: 150px;">Thủ Thuật Viên</th>
+                    <th>Bệnh nhân & Thủ thuật</th>
+                    <th style="width: 150px;">Thời gian</th>
+                    <th style="width: 250px;">Lý do / Vi phạm</th>
+                  </tr>
+                </thead>
+                <tbody id="error-other-body">
+                  <tr><td colspan="5" class="text-center">Chưa có dữ liệu</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </section>
 

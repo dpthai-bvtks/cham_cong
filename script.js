@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initExportExcel();
   initModal();
   initEditModal();
+  initErrorChecker();
 });
 
 // --- UI & TAB QUẢN LÝ ---
@@ -648,4 +649,319 @@ function saveThuThuatToServer() {
     .finally(() => {
       showLoading(false);
     });
+}
+
+// --- KIỂM TRA LỖI SAI SÓT Y TẾ ---
+
+const ERR_NAME_MAP = {
+    'nguyễn thị xuân lương': 'KTV Lương', 'ktv lương': 'KTV Lương',
+    'nguyễn thị hà': 'KTV Hà', 'ktv hà chip': 'KTV Hà', 'ktv hà': 'KTV Hà',
+    'phan thị thu hiền': 'KTV Phan Hiền', 'ktv phan hiền': 'KTV Phan Hiền',
+    'lê thị thu hiền': 'KTV Lê Hiền', 'ktv lê hiền': 'KTV Lê Hiền', 'ltv lê hiền': 'KTV Lê Hiền',
+    'nguyễn văn khính': 'KTV Khính', 'ktv khính': 'KTV Khính',
+    'phạm thị thuyến': 'ĐD Thuyến', 'đd thuyến': 'ĐD Thuyến', 'ktv thuyến': 'ĐD Thuyến',
+    'trần thị duyên': 'ĐD Duyên', 'đd duyên': 'ĐD Duyên', 'ktv duyên': 'ĐD Duyên',
+    'hoàng đức đạt': 'BS Đạt', 'bs đạt': 'BS Đạt',
+    'lê thị thu hoa': 'BS Hoa', 'bs hoa': 'BS Hoa',
+    'nguyễn thị duyên thảo': 'BS Thảo', 'bs thảo': 'BS Thảo', 'bs thảo 2': 'BS Thảo',
+    'nguyễn thu hằng': 'BS Hằng', 'bs hằng': 'BS Hằng',
+    'đặng phong thái': 'BS Thái', 'bs thái': 'BS Thái',
+    'phạm thạch khuyến': 'BS Khuyến', 'bs khuyến': 'BS Khuyến'
+};
+
+const ERR_PROCEDURE_DICT = [
+    {keys: ['điện châm', 'dc'], name: 'Điện châm', tth: 5, ttg: 25},
+    {keys: ['thủy châm', 'tc'], name: 'Thủy châm', tth: 10, ttg: 25},
+    {keys: ['xoa bóp bấm huyệt', 'xbbh', 'xb'], name: 'Xoa bóp bấm huyệt', tth: 25, ttg: 25},
+    {keys: ['cấy chỉ', 'cc'], name: 'Cấy chỉ', tth: 30, ttg: 30},
+    {keys: ['điện xung', 'dx'], name: 'Điều trị bằng các dòng điện xung', tth: 1, ttg: 15},
+    {keys: ['parafin', 'pa'], name: 'Điều trị bằng Parafin', tth: 2, ttg: 20},
+    {keys: ['siêu âm', 'sa'], name: 'Điều trị bằng siêu âm', tth: 15, ttg: 15},
+    {keys: ['sóng ngắn', 'sn'], name: 'Điều trị bằng sóng ngắn', tth: 2, ttg: 15},
+    {keys: ['hồng ngoại', 'hn'], name: 'Điều trị bằng tia hồng ngoại', tth: 1, ttg: 15},
+    {keys: ['xoa bóp vùng', 'xbv'], name: 'Kỹ thuật xoa bóp vùng', tth: 15, ttg: 15},
+    {keys: ['tập trợ giúp', 'ttg', 'trợ giúp'], name: 'Tập vận động có trợ giúp', tth: 20, ttg: 20},
+    {keys: ['tập kháng trở', 'tk', 'kháng trở'], name: 'Tập vận động có kháng trở', tth: 20, ttg: 20},
+    {keys: ['tập thở', 'tt', 'kiểu thở'], name: 'Tập các kiểu thở', tth: 20, ttg: 20},
+    {keys: ['kéo giãn', 'kg'], name: 'Kéo giãn cột sống', tth: 3, ttg: 15}
+];
+
+const ERR_GROUP_1 = ['KTV Lương', 'KTV Hà', 'KTV Phan Hiền', 'KTV Lê Hiền', 'KTV Khính', 'ĐD Thuyến', 'ĐD Duyên'];
+const ERR_GROUP_2 = ['BS Đạt', 'BS Hoa', 'BS Thảo', 'BS Hằng'];
+const ERR_GROUP_3 = ['BS Thái', 'BS Khuyến'];
+
+const ERR_PROC_G1 = ['điện xung', 'parafin', 'siêu âm', 'sóng ngắn', 'hồng ngoại', 'xoa bóp vùng', 'tập vận động có trợ giúp', 'tập vận động có kháng trở', 'tập các kiểu thở', 'kéo giãn cột sống'];
+const ERR_PROC_G3 = ['điện châm', 'thủy châm', 'xoa bóp bấm huyệt', 'cấy chỉ'];
+const ERR_PROC_G2 = [...ERR_PROC_G1, ...ERR_PROC_G3];
+
+function normalizeTextJS(text) {
+    if (!text || typeof text !== 'string') return '';
+    return text.normalize('NFC').trim().toLowerCase();
+}
+
+function getShortNameJS(fullName) {
+    const lowerName = normalizeTextJS(fullName);
+    if (!lowerName) return '';
+    if (ERR_NAME_MAP[lowerName]) return ERR_NAME_MAP[lowerName];
+    for (const [key, val] of Object.entries(ERR_NAME_MAP)) {
+        if (lowerName.includes(key)) return val;
+    }
+    return String(fullName).trim();
+}
+
+function mapProcedureJS(procStr) {
+    const procStrLower = normalizeTextJS(procStr);
+    for (const item of ERR_PROCEDURE_DICT) {
+        for (const k of item.keys) {
+            if (k.length <= 4) {
+                if (k === procStrLower) return item;
+            } else {
+                if (procStrLower.includes(k)) return item;
+            }
+        }
+    }
+    return null;
+}
+
+function checkPermissionJS(techName, procName) {
+    let techGroup = 0;
+    if (ERR_GROUP_1.includes(techName)) techGroup = 1;
+    else if (ERR_GROUP_2.includes(techName)) techGroup = 2;
+    else if (ERR_GROUP_3.includes(techName)) techGroup = 3;
+    else return true;
+
+    const procLower = normalizeTextJS(procName);
+    if (techGroup === 1) return ERR_PROC_G1.some(p => procLower.includes(normalizeTextJS(p)));
+    if (techGroup === 2) return ERR_PROC_G2.some(p => procLower.includes(normalizeTextJS(p)));
+    if (techGroup === 3) return ERR_PROC_G3.some(p => procLower.includes(normalizeTextJS(p)));
+    return false;
+}
+
+function convertExcelDateToJSDate(serial) {
+    if (!serial) return null;
+    if (typeof serial === 'string') {
+        // Parse time string formatted as HH:MM or DD/MM/YYYY HH:MM
+        // Fallback robust logic
+        const dateObj = new Date(serial);
+        if (!isNaN(dateObj.getTime())) return dateObj;
+        
+        const parts = serial.match(/(\d+):(\d+)/);
+        if (parts) {
+             const d = new Date();
+             d.setHours(parseInt(parts[1]), parseInt(parts[2]), 0, 0);
+             return d;
+        }
+        return null;
+    }
+    if (serial instanceof Date) return serial;
+    // Excel date processing (floating point number)
+    const utc_days = Math.floor(serial - 25569);
+    const utc_value = utc_days * 86400; 
+    const date_info = new Date(utc_value * 1000);
+    const fractional_day = serial - Math.floor(serial) + 0.0000001;
+    let total_seconds = Math.floor(86400 * fractional_day);
+    const seconds = total_seconds % 60;
+    total_seconds -= seconds;
+    const hours = Math.floor(total_seconds / (60 * 60));
+    const minutes = Math.floor(total_seconds / 60) % 60;
+    date_info.setHours(hours, minutes, seconds, 0);
+    return date_info;
+}
+
+function formatDate(date) {
+    if (!date || isNaN(date.getTime())) return '';
+    const h = String(date.getHours()).padStart(2, '0');
+    const m = String(date.getMinutes()).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    const mo = String(date.getMonth() + 1).padStart(2, '0');
+    return `${h}:${m} (${d}/${mo})`;
+}
+
+function initErrorChecker() {
+    const fileInput = document.getElementById('error-file-input');
+    if (!fileInput) return;
+    
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        showLoading(true);
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                // cellDates: false ensures we get Excel's serial numbers for precise calculation
+                const workbook = XLSX.read(data, { type: 'array', cellDates: false });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                // Read starting from Excel row 13 (index 12), header is row 12 (index 11). range = 11 in SheetJS means header is at row index 11.
+                const dataRows = XLSX.utils.sheet_to_json(worksheet, { header: "A", range: 11, defval: "" });
+                processErrorChecking(dataRows);
+            } catch (err) {
+                console.error(err);
+                alert("Lỗi khi đọc file. Vui lòng kiểm tra lại cấu trúc form.");
+            } finally {
+                showLoading(false);
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    });
+}
+
+function processErrorChecking(dataRows) {
+    const timeTbody = document.getElementById('error-time-body');
+    const otherTbody = document.getElementById('error-other-body');
+    timeTbody.innerHTML = '';
+    otherTbody.innerHTML = '';
+
+    let sttTime = 1;
+    let sttOther = 1;
+
+    // Grouping
+    const grouped = {};
+    const validStaff = [...ERR_GROUP_1, ...ERR_GROUP_2, ...ERR_GROUP_3];
+
+    for (let row of dataRows) {
+        if (!row['AH'] || !row['L']) continue;
+        
+        let start = convertExcelDateToJSDate(row['AH']);
+        let end = convertExcelDateToJSDate(row['L']);
+        if (!start || isNaN(start.getTime()) || !end || isNaN(end.getTime())) continue;
+
+        let techRaw = String(row['AT'] || '').trim();
+        let techNorm = getShortNameJS(techRaw);
+        if (!techNorm) continue;
+        
+        if (!grouped[techNorm]) grouped[techNorm] = [];
+        
+        grouped[techNorm].push({
+            raw: row,
+            patientName: String(row['C'] || 'Không rõ'),
+            procName: String(row['AE'] || ''),
+            ptttStatus: String(row['AF'] || ''),
+            anesName: String(row['AS'] || ''),
+            techRaw: techRaw,
+            start: start,
+            end: end
+        });
+    }
+
+    // Process logic
+    for (const [tech, groupRows] of Object.entries(grouped)) {
+        groupRows.sort((a, b) => a.start - b.start);
+        const fastRows = [];
+
+        for (const row of groupRows) {
+            const procInfo = mapProcedureJS(row.procName);
+            const timeAStr = `${formatDate(row.start)} -> ${formatDate(row.end)}`;
+            
+            // 1. Sai tên nhân viên
+            if (!validStaff.includes(tech)) {
+                addOtherRow(otherTbody, sttOther++, row.techRaw, `${row.patientName}<br/>${row.procName}`, timeAStr, "Sai tên nhân viên (Không có trong CSDL)");
+            }
+            
+            // 2. Sai Tình hình PTTT
+            const status = String(row.ptttStatus).trim().toLowerCase();
+            if (status !== "chủ động" && status !== "nan" && status !== "") {
+                addOtherRow(otherTbody, sttOther++, tech, `${row.patientName}<br/>${row.procName}`, timeAStr, `Sai Tình hình PTTT: '${row.ptttStatus}' (Phải là Chủ động)`);
+            }
+            
+            // 3. Sai Vô Cảm
+            const anes = String(row.anesName).trim().toLowerCase();
+            if (anes !== "khác" && anes !== "nan" && anes !== "") {
+                addOtherRow(otherTbody, sttOther++, tech, `${row.patientName}<br/>${row.procName}`, timeAStr, `Sai Vô cảm: '${row.anesName}' (Bắt buộc Khác)`);
+            }
+
+            if (!procInfo) continue;
+
+            // 4. Sai Phân quyền
+            if (!checkPermissionJS(tech, procInfo.name)) {
+                addOtherRow(otherTbody, sttOther++, tech, `${row.patientName}<br/>${procInfo.name}`, timeAStr, "Làm thủ thuật ngoài phạm vi phân quyền");
+            }
+            
+            const execEnd = new Date(row.start.getTime() + procInfo.tth * 60000);
+            
+            fastRows.push({
+                raw: row,
+                info: procInfo,
+                start: row.start,
+                end: row.end,
+                execEnd: execEnd,
+                isCont: procInfo.tth === procInfo.ttg
+            });
+        }
+
+        // Time overlap logic
+        const n = fastRows.length;
+        for (let i = 0; i < n; i++) {
+            const A = fastRows[i];
+            const timeAStr = `${formatDate(A.start)} -> ${formatDate(A.end)}`;
+            for (let j = i + 1; j < n; j++) {
+                const B = fastRows[j];
+                if (B.start.getTime() > A.end.getTime()) break; // sorted by start time
+                
+                let errorReason = "";
+                const aTc = A.info.name === 'Thủy châm';
+                const bTc = B.info.name === 'Thủy châm';
+                
+                const inExec = (s, pt, e) => (pt <= s && s < e);
+                const overlap = (s1, e1, s2, e2) => (Math.max(s1, s2) < Math.min(e1, e2));
+                
+                const bStart = B.start.getTime();
+                const bEnd = B.end.getTime();
+                const aStart = A.start.getTime();
+                const aEnd = A.end.getTime();
+                const aExecEnd = A.execEnd.getTime();
+                const bExecEnd = B.execEnd.getTime();
+
+                if (bStart === aStart) errorReason = "Trùng giờ bắt đầu";
+                else if (!aTc && bStart === aEnd) errorReason = "Trùng giờ bắt đầu hoặc kết thúc";
+                else if (!bTc && bEnd === aStart) errorReason = "Trùng giờ bắt đầu hoặc kết thúc";
+                else if (!aTc && !bTc && bEnd === aEnd) errorReason = "Trùng giờ bắt đầu hoặc kết thúc";
+                else if (inExec(bStart, aStart, aExecEnd)) errorReason = `Giờ bắt đầu Ca B rơi vào thời gian thực hiện của ${A.info.name}`;
+                else if (!bTc && inExec(bEnd, aStart, aExecEnd)) errorReason = `Giờ kết thúc Ca B rơi vào thời gian thực hiện của ${A.info.name}`;
+                else if (inExec(aStart, bStart, bExecEnd)) errorReason = `Giờ bắt đầu Ca A rơi vào thời gian thực hiện của ${B.info.name}`;
+                else if (!aTc && inExec(aEnd, bStart, bExecEnd)) errorReason = `Giờ kết thúc Ca A rơi vào thời gian thực hiện của ${B.info.name}`;
+                else if (A.isCont && overlap(aStart, aEnd, bStart, bEnd)) errorReason = `Đè lên thời gian liên tục của ${A.info.name} (Ca A)`;
+                else if (B.isCont && overlap(bStart, bEnd, aStart, aEnd)) errorReason = `Đè lên thời gian liên tục của ${B.info.name} (Ca B)`;
+                
+                if (errorReason) {
+                    const timeBStr = `${formatDate(B.start)} -> ${formatDate(B.end)}`;
+                    addTimeRow(timeTbody, sttTime++, tech, 
+                        `${A.raw.patientName}<br/>${A.info.name}<br/><span style="color:var(--primary-color)">${timeAStr}</span>`,
+                        `${B.raw.patientName}<br/>${B.info.name}<br/><span style="color:var(--primary-color)">${timeBStr}</span>`,
+                        errorReason);
+                }
+            }
+        }
+    }
+
+    if (sttTime === 1) timeTbody.innerHTML = `<tr><td colspan="5" class="text-center" style="color: green; font-weight: bold;">✅ CHÚC MỪNG! Không phát hiện lỗi trùng lặp giờ nào.</td></tr>`;
+    if (sttOther === 1) otherTbody.innerHTML = `<tr><td colspan="5" class="text-center" style="color: green; font-weight: bold;">✅ CHÚC MỪNG! Không phát hiện sai quy trình/phân quyền nào.</td></tr>`;
+    
+    showToast(`Đã kiểm tra xong! ${sttTime-1} lỗi trùng giờ, ${sttOther-1} lỗi sai quy trình/phân quyền.`);
+}
+
+function addTimeRow(tbody, stt, tech, ca1, ca2, reason) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td class="text-center">${stt}</td>
+        <td><strong>${tech}</strong></td>
+        <td>${ca1}</td>
+        <td>${ca2}</td>
+        <td style="color: #dc3545; font-weight: 500;">${reason}</td>
+    `;
+    tbody.appendChild(tr);
+}
+
+function addOtherRow(tbody, stt, tech, info, timeStr, reason) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td class="text-center">${stt}</td>
+        <td><strong>${tech}</strong></td>
+        <td>${info}</td>
+        <td><span style="color:var(--primary-color)">${timeStr}</span></td>
+        <td style="color: #fd7e14; font-weight: 500;">${reason}</td>
+    `;
+    tbody.appendChild(tr);
 }
