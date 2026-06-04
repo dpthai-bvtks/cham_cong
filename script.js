@@ -584,25 +584,32 @@ function initExportExcel() {
       if (!response.ok) throw new Error("Không tìm thấy file mẫu mau-bang-tien.xlsx");
       
       const arrayBuffer = await response.arrayBuffer();
-      // cellStyles: true để cố gắng giữ lại định dạng nếu có thể
-      const wb = XLSX.read(arrayBuffer, { type: 'array', cellStyles: true });
-      const ws = wb.Sheets[wb.SheetNames[0]];
+      
+      // Dùng ExcelJS để giữ nguyên mọi định dạng, viền, công thức
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(arrayBuffer);
+      const ws = workbook.getWorksheet(1); // Lấy sheet đầu tiên
 
       // Ghi tháng năm vào ô A5
       if (currentMonthYear) {
         const [year, month] = currentMonthYear.split('-');
-        ws['A5'] = { v: `THÁNG ${month} NĂM ${year}`, t: 's' };
+        ws.getCell('A5').value = `THÁNG ${month} NĂM ${year}`;
       }
 
-      const range = XLSX.utils.decode_range(ws['!ref']);
-      
-      // Dữ liệu mẫu bắt đầu từ dòng 10 (index 9)
-      for (let R = 9; R <= range.e.r; ++R) {
-        const cellNameRef = XLSX.utils.encode_cell({c: 1, r: R}); // Cột B (index 1)
-        const cellName = ws[cellNameRef];
-        if (!cellName || !cellName.v) continue;
+      // Dữ liệu mẫu bắt đầu từ dòng 10
+      let rowIdx = 10;
+      while (true) {
+        const cell = ws.getCell(`B${rowIdx}`);
         
-        const empName = String(cellName.v).normalize('NFC').toLowerCase().trim();
+        let cellVal = cell.value;
+        if (cellVal && typeof cellVal === 'object') {
+          if (cellVal.richText) cellVal = cellVal.richText.map(r => r.text).join('');
+          else if (cellVal.result !== undefined) cellVal = cellVal.result;
+        }
+        
+        if (!cellVal || String(cellVal).trim() === '') break; // Dừng khi hết danh sách
+        
+        const empName = String(cellVal).normalize('NFC').toLowerCase().trim();
         
         let stats = null;
         for (const [key, value] of Object.entries(thuThuatData)) {
@@ -613,22 +620,24 @@ function initExportExcel() {
         }
         
         if (stats) {
-          const updateCell = (col, val) => {
-            if (val > 0) {
-              const cellRef = XLSX.utils.encode_cell({c: col, r: R});
-              if (!ws[cellRef]) ws[cellRef] = {};
-              ws[cellRef].v = val;
-              ws[cellRef].t = 'n';
-            }
-          };
-          // Cột C (2) - L1, Cột E (4) - L2, Cột G (6) - L3
-          updateCell(2, stats.loai1);
-          updateCell(4, stats.loai2);
-          updateCell(6, stats.loai3);
+          // Cập nhật số lượng vào C (L1), E (L2), G (L3)
+          if (stats.loai1 > 0) ws.getCell(`C${rowIdx}`).value = stats.loai1;
+          if (stats.loai2 > 0) ws.getCell(`E${rowIdx}`).value = stats.loai2;
+          if (stats.loai3 > 0) ws.getCell(`G${rowIdx}`).value = stats.loai3;
         }
+        
+        rowIdx++;
       }
       
-      XLSX.writeFile(wb, `Bang_Tien_${currentMonthYear || 'ThongKe'}.xlsx`);
+      // Tải xuống file xuất
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Bang_Tien_${currentMonthYear || 'ThongKe'}.xlsx`;
+      a.click();
+      window.URL.revokeObjectURL(url);
     } catch (err) {
       console.error(err);
       alert("Lỗi xuất file: " + err.message);
