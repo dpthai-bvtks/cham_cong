@@ -232,8 +232,11 @@ function renderEmployeesTable() {
   tbody.innerHTML = '';
   employees.forEach((emp, index) => {
     const tr = document.createElement('tr');
+    tr.setAttribute('draggable', 'true');
+    tr.setAttribute('data-index', index);
+    tr.style.cursor = 'grab';
     tr.innerHTML = `
-      <td>${index + 1}</td>
+      <td style="color: #888;"><i class='bx bx-menu'></i> ${index + 1}</td>
       <td><strong>${emp}</strong></td>
       <td style="display: flex; gap: 8px;">
         <button class="btn btn-primary" style="padding: 6px 12px;" onclick="editEmployee(${index})">
@@ -244,6 +247,71 @@ function renderEmployeesTable() {
         </button>
       </td>
     `;
+
+    // Sự kiện kéo thả
+    tr.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', index);
+      tr.style.opacity = '0.5';
+      setTimeout(() => tr.classList.add('dragging'), 0);
+    });
+
+    tr.addEventListener('dragend', () => {
+      tr.style.opacity = '1';
+      tr.classList.remove('dragging');
+      renderEmployeesTable(); // Xóa các border highlight còn sót lại
+    });
+
+    tr.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      const currentElement = e.target.closest('tr');
+      if (currentElement && !currentElement.classList.contains('dragging')) {
+        const bounding = currentElement.getBoundingClientRect();
+        const offset = bounding.y + (bounding.height / 2);
+        if (e.clientY - offset > 0) {
+          currentElement.style.borderBottom = "2px solid var(--primary-color)";
+          currentElement.style.borderTop = "";
+        } else {
+          currentElement.style.borderTop = "2px solid var(--primary-color)";
+          currentElement.style.borderBottom = "";
+        }
+      }
+    });
+
+    tr.addEventListener('dragleave', (e) => {
+      const currentElement = e.target.closest('tr');
+      if (currentElement && !currentElement.classList.contains('dragging')) {
+        currentElement.style.borderTop = "";
+        currentElement.style.borderBottom = "";
+      }
+    });
+
+    tr.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const draggedIndex = parseInt(e.dataTransfer.getData('text/plain'));
+      const targetIndex = index;
+      
+      if (draggedIndex === targetIndex || isNaN(draggedIndex)) return;
+      
+      const draggedItem = employees.splice(draggedIndex, 1)[0];
+      
+      // Điều chỉnh vị trí chèn dựa trên việc kéo lên hay kéo xuống
+      const bounding = tr.getBoundingClientRect();
+      const offset = bounding.y + (bounding.height / 2);
+      let insertIndex = targetIndex;
+      
+      if (draggedIndex < targetIndex && e.clientY < offset) {
+        insertIndex--;
+      } else if (draggedIndex > targetIndex && e.clientY > offset) {
+        insertIndex++;
+      }
+      
+      employees.splice(insertIndex, 0, draggedItem);
+      
+      saveEmployeesLocally();
+      renderEmployeesTable();
+      renderChamCongTable();
+    });
+
     tbody.appendChild(tr);
   });
 }
