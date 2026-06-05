@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Công Cụ Import Excel Chấm Công</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f0f2f5; }
+    .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    h2 { color: #2c3e50; }
+    .btn { padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 15px; }
+    .btn:hover { background: #2980b9; }
+    #log { margin-top: 20px; padding: 10px; background: #ecf0f1; border-radius: 4px; font-family: monospace; white-space: pre-wrap; min-height: 100px; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h2>Nhập Dữ Liệu Từ File nam-2026.xlsx</h2>
+    <p>Hãy chọn file <b>nam-2026.xlsx</b> để hệ thống tự động quét và đẩy dữ liệu chuẩn xác lên máy chủ (Tháng 1 đến Tháng 5).</p>
+    <input type="file" id="fileInput" accept=".xlsx, .xls" />
+    <br/>
+    <button class="btn" id="btnImport">Bắt đầu Import</button>
+    
+    <div id="log">Chưa có hoạt động nào...</div>
+  </div>
+
+  <script>
+    const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxNQXg2uLWsAt8LgUdaCTlMRR_1vRrCdCAJl-bUOCNvuU7MzM2CqnXt1kncjhamE2V4Sw/exec';
+
+    function log(msg) {
+      const logDiv = document.getElementById('log');
+      logDiv.innerHTML += msg + '\n';
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    document.getElementById('btnImport').addEventListener('click', () => {
+      const fileInput = document.getElementById('fileInput');
+      if (!fileInput.files || fileInput.files.length === 0) {
+        alert('Vui lòng chọn file Excel trước!');
+        return;
+      }
+      
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      
+      reader.onload = async function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          // Đọc dưới dạng mảng 2 chiều
+          const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+          
+          log("Đã đọc file Excel thành công. Bắt đầu xử lý...");
+          
+          const monthRanges = [
+            { name: "Tháng 1", monthYear: "2026-01", start: 4, end: 17, days: 31 },  // Dòng 5 -> 18
+            { name: "Tháng 2", monthYear: "2026-02", start: 24, end: 37, days: 28 }, // Dòng 25 -> 38
+            { name: "Tháng 3", monthYear: "2026-03", start: 44, end: 58, days: 31 }, // Dòng 45 -> 59
+            { name: "Tháng 4", monthYear: "2026-04", start: 65, end: 79, days: 30 }, // Dòng 66 -> 80
+            { name: "Tháng 5", monthYear: "2026-05", start: 86, end: 100, days: 31 } // Dòng 87 -> 101
+          ];
+
+          for (const m of monthRanges) {
+            let chamCongData = {};
+            for (let i = m.start; i <= m.end; i++) {
+              if (i >= rows.length) break;
+              const row = rows[i];
+              let empName = row[1]; // Cột B (Họ và tên)
+              if (!empName || typeof empName !== 'string') continue;
+              empName = empName.trim();
+              if (empName === "") continue;
+
+              chamCongData[empName] = {};
+              for (let d = 1; d <= m.days; d++) {
+                let val = row[d + 1]; // Cột C tương ứng mùng 1, Cột D là mùng 2...
+                if (typeof val === 'string') val = val.trim().toUpperCase();
+                
+                if (val === 'X') {
+                  chamCongData[empName][d] = 'ca-ngay';
+                } else if (val === 'X/2') {
+                  chamCongData[empName][d] = 'sang';
+                }
+              }
+            }
+
+            log(`Đang đẩy dữ liệu ${m.name}...`);
+            // Gọi API lưu lên GAS
+            const response = await fetch(GAS_WEBAPP_URL, {
+              method: 'POST',
+              body: JSON.stringify({
+                action: 'saveChamCong',
+                monthYear: m.monthYear,
+                data: chamCongData
+              })
+            });
+            const text = await response.text();
+            log(`- ${m.name} tải lên thành công!`);
+          }
+
+          log("\n✅ HOÀN TẤT! Bạn có thể về trang chính để kiểm tra dữ liệu.");
+          alert("Quá trình đẩy dữ liệu đã hoàn tất thành công!");
+
+        } catch (err) {
+          log("LỖI: " + err.message);
+          console.error(err);
+        }
+      };
+      
+      reader.readAsArrayBuffer(file);
+    });
+  </script>
+</body>
+</html>
