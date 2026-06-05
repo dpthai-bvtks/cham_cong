@@ -84,9 +84,14 @@
 
             // Đọc dữ liệu nhân viên
             const name = row[0];
-            if (typeof name === 'string' && name.trim().length > 0 && name !== "HỌ TÊN" && currentMonth) {
-              const empName = name.trim();
-              if (empName === "Tổng") continue;
+            if (typeof name === 'string' && name.trim().length > 0 && name.toUpperCase() !== "HỌ TÊN" && currentMonth) {
+              let empName = name.trim();
+              if (empName.toUpperCase() === "TỔNG") continue;
+
+              // Chuẩn hóa tên: VIẾT HOA toàn bộ -> Viết Hoa Chữ Cái Đầu
+              empName = empName.toLowerCase().split(/\s+/).map(word => {
+                return word.charAt(0).toUpperCase() + word.slice(1);
+              }).join(' ');
 
               const y = parseInt(currentMonth.split('-')[0]);
               const m = parseInt(currentMonth.split('-')[1]);
