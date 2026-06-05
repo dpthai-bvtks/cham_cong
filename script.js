@@ -403,7 +403,9 @@ function isHoliday(y, m, d) {
   if (dayOfWeek === 0) return true; // Chỉ Chủ Nhật mới nghỉ cố định
   
   const md = `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}`;
-  if (customHolidays.includes(md)) return true;
+  const mdy = `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y}`;
+  
+  if (customHolidays.includes(md) || customHolidays.includes(mdy)) return true;
   
   return false;
 }

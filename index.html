@@ -288,26 +288,24 @@
               Bạn cũng có thể tải file này lên lại để khôi phục dữ liệu về đúng trạng thái ban đầu.
             </p>
             
-            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-              <!-- Sao Lưu -->
-              <div style="flex: 1; border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; text-align: center;">
-                <i class='bx bx-download' style="font-size: 3rem; color: var(--success-dark); margin-bottom: 10px;"></i>
-                <h4 style="margin-bottom: 15px;">Tải Sao Lưu</h4>
-                <select id="backup-type" class="input-field" style="width: 100%; margin-bottom: 15px; text-align: center; font-weight: bold;">
-                  <option value="thang">Theo Tháng hiện tại</option>
-                  <option value="quy">Theo Quý hiện tại</option>
-                  <option value="nam">Theo Năm hiện tại</option>
+            <div style="display: flex; gap: 20px; align-items: center; border: 1px solid var(--border-color); border-radius: 8px; padding: 15px;">
+              <div style="flex: 1; display: flex; align-items: center; gap: 10px;">
+                <i class='bx bx-download' style="font-size: 2rem; color: var(--success-dark);"></i>
+                <select id="backup-type" class="input-field" style="width: 200px;">
+                  <option value="thang">Sao lưu Tháng này</option>
+                  <option value="quy">Sao lưu Quý này</option>
+                  <option value="nam">Sao lưu Năm nay</option>
                   <option value="all">Toàn bộ dữ liệu</option>
                 </select>
-                <button class="btn btn-primary" id="btn-backup-data" style="width: 100%;"><i class='bx bxs-save'></i> Bắt Đầu Tải</button>
+                <button class="btn btn-primary" id="btn-backup-data"><i class='bx bxs-save'></i> Tải Về</button>
               </div>
 
-              <!-- Khôi Phục -->
-              <div style="flex: 1; border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; text-align: center;">
-                <i class='bx bx-upload' style="font-size: 3rem; color: var(--warning-color); margin-bottom: 10px;"></i>
-                <h4 style="margin-bottom: 15px;">Khôi Phục Dữ Liệu</h4>
+              <div style="width: 1px; height: 40px; background-color: var(--border-color);"></div>
+
+              <div style="flex: 1; display: flex; align-items: center; gap: 10px;">
+                <i class='bx bx-upload' style="font-size: 2rem; color: var(--warning-color);"></i>
                 <input type="file" id="restore-file-input" accept=".json" style="display: none;" />
-                <button class="btn btn-secondary" style="width: 100%; border: 1px solid var(--warning-color); color: var(--warning-color);" onclick="document.getElementById('restore-file-input').click()">
+                <button class="btn btn-secondary" style="border: 1px solid var(--warning-color); color: var(--warning-color);" onclick="document.getElementById('restore-file-input').click()">
                   <i class='bx bx-refresh'></i> Chọn File Khôi Phục
                 </button>
               </div>
@@ -341,9 +339,11 @@
 
             <div style="margin-top: 20px; border: 1px solid var(--border-color); border-radius: 8px; padding: 20px;">
               <h4 style="margin-bottom: 15px;"><i class='bx bx-calendar-event'></i> Danh Mục Ngày Lễ (Khoa Nghỉ)</h4>
-              <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 10px;">Nhập các ngày lễ trong năm theo định dạng ngày/tháng, cách nhau bởi dấu phẩy (VD: 30/04, 01/05, 02/09).</p>
+              <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 10px;">
+                Nhập <b>DD/MM</b> cho ngày dương lịch cố định hàng năm (VD: 30/04). Nhập <b>DD/MM/YYYY</b> cho ngày lịch âm đã đổi sang dương (VD Giỗ Tổ 2026: 26/04/2026).
+              </p>
               <div style="display: flex; gap: 10px;">
-                <input type="text" id="holiday-input" class="input-field" style="flex: 1;" placeholder="VD: 01/01, 30/04, 01/05, 02/09">
+                <input type="text" id="holiday-input" class="input-field" style="flex: 1;" placeholder="VD: 01/01, 30/04, 01/05, 02/09, 26/04/2026">
                 <button class="btn btn-primary" id="btn-save-holidays">Lưu Ngày Lễ</button>
               </div>
             </div>
