@@ -378,13 +378,22 @@ function renderEmployeesTable() {
 let customHolidays = [];
 
 function loadSettings() {
-  // Tải ngày lễ
-  const hData = localStorage.getItem('med_holidays');
-  if (hData) {
-    customHolidays = hData.split(',').map(s => s.trim());
-  } else {
-    customHolidays = ['01/01', '30/04', '01/05', '02/09'];
+  // Danh sách ngày lễ mặc định (Dương lịch + Âm lịch các năm + 12/11)
+  const defaultHolidays = [
+    '01/01', '30/04', '01/05', '02/09', '12/11', 
+    '18/04/2024', '08/02/2024','09/02/2024','10/02/2024','11/02/2024','12/02/2024','13/02/2024','14/02/2024',
+    '07/04/2025', '27/01/2025','28/01/2025','29/01/2025','30/01/2025','31/01/2025','01/02/2025','02/02/2025',
+    '26/04/2026', '16/02/2026','17/02/2026','18/02/2026','19/02/2026','20/02/2026','21/02/2026','22/02/2026',
+    '16/04/2027', '05/02/2027','06/02/2027','07/02/2027','08/02/2027','09/02/2027','10/02/2027','11/02/2027'
+  ];
+
+  // Tải ngày lễ, tự động điền nếu chưa có ngày 12/11
+  let hData = localStorage.getItem('med_holidays');
+  if (!hData || !hData.includes('12/11')) {
+    hData = defaultHolidays.join(', ');
+    localStorage.setItem('med_holidays', hData);
   }
+  customHolidays = hData.split(',').map(s => s.trim());
   
   // Áp dụng Dark Mode
   if (localStorage.getItem('med_dark_mode') === 'true') {
