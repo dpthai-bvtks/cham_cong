@@ -32,34 +32,53 @@ function initTabs() {
   const panes = document.querySelectorAll('.tab-pane');
   const dateSelector = document.querySelector('.date-selector');
 
+  const switchTab = (tabId) => {
+    links.forEach(l => l.classList.remove('active'));
+    panes.forEach(p => p.classList.remove('active'));
+
+    const activeLink = Array.from(links).find(l => l.getAttribute('data-tab') === tabId);
+    if (activeLink) {
+      activeLink.classList.add('active');
+      document.getElementById('page-title').innerText = activeLink.querySelector('span').innerText;
+    }
+
+    const activePane = document.getElementById(tabId);
+    if (activePane) activePane.classList.add('active');
+
+    if (tabId === 'tab-kiemtra' || tabId === 'tab-nhanvien') {
+      dateSelector.style.display = 'none';
+    } else {
+      dateSelector.style.display = '';
+    }
+
+    if (tabId === 'tab-thongke') {
+      renderThongKeTable();
+    }
+  };
+
   links.forEach(link => {
     link.addEventListener('click', () => {
-      // Bỏ active links
-      links.forEach(l => l.classList.remove('active'));
-      link.classList.add('active');
-
-      // Ẩn tất cả panes
-      panes.forEach(p => p.classList.remove('active'));
-
-      // Hiện pane được chọn
       const tabId = link.getAttribute('data-tab');
-      document.getElementById(tabId).classList.add('active');
-
-      // Đổi title
-      document.getElementById('page-title').innerText = link.querySelector('span').innerText;
-
-      // Ẩn/hiện bộ chọn tháng tùy tab
-      if (tabId === 'tab-kiemtra' || tabId === 'tab-nhanvien') {
-        dateSelector.style.display = 'none';
-      } else {
-        dateSelector.style.display = '';
-      }
-
-      if (tabId === 'tab-thongke') {
-        renderThongKeTable();
-      }
+      window.location.hash = tabId;
     });
   });
+
+  window.addEventListener('hashchange', () => {
+    const hash = window.location.hash.replace('#', '');
+    if (hash) {
+      switchTab(hash);
+    }
+  });
+
+  // Tải tab mặc định từ URL, nếu không có thì mặc định là tab đầu tiên
+  const initialHash = window.location.hash.replace('#', '');
+  if (initialHash) {
+    switchTab(initialHash);
+  } else {
+    // Kích hoạt tab mặc định
+    const firstTab = links[0].getAttribute('data-tab');
+    switchTab(firstTab);
+  }
 }
 
 function initMonthYearPicker() {
