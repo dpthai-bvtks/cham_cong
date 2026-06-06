@@ -679,3 +679,9 @@ body.dark-mode .bg-holiday {
 body.dark-mode .data-table tbody tr:hover td.bg-holiday {
   background-color: #3d3922 !important; /* Vàng tối hơn một chút khi hover */
 }
+
+body.dark-mode .toast {
+  background-color: #333;
+  color: #fff;
+  border: 1px solid #444;
+}
