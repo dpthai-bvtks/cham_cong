@@ -760,9 +760,29 @@ body.dark-mode .toast {
   }
 
   .content-area {
-    padding: 15px;
+    padding: 10px;
   }
   
+  .tab-pane {
+    padding: 10px !important;
+  }
+  
+  .card {
+    margin-bottom: 15px;
+  }
+  
+  .card-header {
+    padding: 12px 15px !important;
+  }
+  
+  .card-body {
+    padding: 12px 15px !important;
+  }
+  
+  .card-body th, .card-body td, .data-table th, .data-table td {
+    padding: 8px 10px;
+  }
+
   /* Giữ table cuộn ngang */
   .table-container {
     overflow-x: auto;

@@ -1628,15 +1628,14 @@ function renderDashboard() {
     responsive: true,
     layout: {
       padding: {
-        top: 30
+        top: 20
       }
     },
     scales: {
       y: { 
         beginAtZero: true,
         ticks: { color: textColor },
-        grid: { color: gridColor },
-        grace: '5%' // Thêm một chút khoảng trống phía trên cùng trục Y
+        grid: { color: gridColor }
       },
       x: {
         ticks: { color: textColor },
@@ -1656,10 +1655,19 @@ function renderDashboard() {
     }
   };
 
+  // Tính Max để tránh đè chữ
+  const maxCong = congData.length > 0 ? Math.max(...congData) : 0;
+  const maxTT = ttData.length > 0 ? Math.max(...ttData) : 0;
+
   // Chart Chấm Công
   const ctxCong = document.getElementById('chartChamCong');
   if (ctxCong) {
     if (chartChamCongInstance) chartChamCongInstance.destroy();
+    
+    // Copy options và gán suggestedMax
+    const optCong = JSON.parse(JSON.stringify(commonOptions));
+    optCong.scales.y.suggestedMax = maxCong + (maxCong * 0.2); // Tăng thêm 20% khoảng trống
+    
     chartChamCongInstance = new Chart(ctxCong.getContext('2d'), {
       type: 'bar',
       data: {
@@ -1672,7 +1680,7 @@ function renderDashboard() {
           borderWidth: 1
         }]
       },
-      options: commonOptions
+      options: optCong
     });
   }
 
@@ -1680,6 +1688,11 @@ function renderDashboard() {
   const ctxTT = document.getElementById('chartThuThuat');
   if (ctxTT) {
     if (chartThuThuatInstance) chartThuThuatInstance.destroy();
+    
+    // Copy options và gán suggestedMax
+    const optTT = JSON.parse(JSON.stringify(commonOptions));
+    optTT.scales.y.suggestedMax = maxTT + (maxTT * 0.2); // Tăng thêm 20% khoảng trống
+    
     chartThuThuatInstance = new Chart(ctxTT.getContext('2d'), {
       type: 'bar',
       data: {
@@ -1692,7 +1705,7 @@ function renderDashboard() {
           borderWidth: 1
         }]
       },
-      options: commonOptions
+      options: optTT
     });
   }
 }
