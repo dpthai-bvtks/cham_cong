@@ -1644,13 +1644,17 @@ function renderDashboard() {
     },
     plugins: {
       legend: {
-        labels: { color: textColor }
+        labels: { 
+          color: textColor,
+          padding: 25 // Tạo khoảng cách an toàn giữa chú thích và cột số liệu
+        }
       },
       datalabels: {
         anchor: 'end',
         align: 'end',
         color: textColor,
-        font: { weight: 'bold', size: 12 }
+        font: { weight: 'bold', size: 12 },
+        offset: 4 // Đẩy con số nhích lên một chút khỏi đỉnh cột
       }
     }
   };

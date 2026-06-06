@@ -771,16 +771,31 @@ body.dark-mode .toast {
     margin-bottom: 15px;
   }
   
-  .card-header {
-    padding: 12px 15px !important;
+  .card-body th, .card-body td, .data-table th, .data-table td {
+    padding: 8px 10px;
+    white-space: nowrap; /* Quan trọng: Không cho chữ xuống dòng làm méo bảng */
   }
-  
+
   .card-body {
     padding: 12px 15px !important;
   }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    padding: 12px 15px !important;
+  }
   
-  .card-body th, .card-body td, .data-table th, .data-table td {
-    padding: 8px 10px;
+  /* Ghi đè các div con bên trong card-header có style inline */
+  .card-header > div {
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 8px !important;
+  }
+  
+  .card-header h3 {
+    margin-bottom: 5px !important;
   }
 
   /* Giữ table cuộn ngang */
