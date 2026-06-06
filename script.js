@@ -1566,16 +1566,15 @@ let chartThuThuatInstance = null;
 
 function renderDashboard() {
   if (typeof Chart === 'undefined') return;
+  
+  // Đăng ký plugin DataLabels nếu có
+  if (typeof ChartDataLabels !== 'undefined') {
+    Chart.register(ChartDataLabels);
+  }
 
   const labels = [];
   const congData = [];
   const ttData = [];
-
-  const shortenName = (fullName) => {
-    const parts = fullName.trim().split(/\s+/);
-    if (parts.length <= 2) return fullName;
-    return parts.slice(-2).join(' ');
-  };
 
   // Lọc ra danh sách nhân viên có dữ liệu (có công hoặc có thủ thuật)
   employees.forEach(emp => {
@@ -1590,11 +1589,41 @@ function renderDashboard() {
     const tongTT = (tt.loai1 || 0) + (tt.loai2 || 0) + (tt.loai3 || 0);
 
     if (tongCong > 0 || tongTT > 0) {
-      labels.push(shortenName(emp));
+      labels.push(emp); // Để tên đầy đủ
       congData.push(tongCong);
       ttData.push(tongTT);
     }
   });
+
+  const isDark = document.body.classList.contains('dark-mode');
+  const textColor = isDark ? '#fff' : '#444';
+  const gridColor = isDark ? '#333' : '#e9ecef';
+
+  const commonOptions = {
+    responsive: true,
+    scales: {
+      y: { 
+        beginAtZero: true,
+        ticks: { color: textColor },
+        grid: { color: gridColor }
+      },
+      x: {
+        ticks: { color: textColor },
+        grid: { color: gridColor }
+      }
+    },
+    plugins: {
+      legend: {
+        labels: { color: textColor }
+      },
+      datalabels: {
+        anchor: 'end',
+        align: 'end',
+        color: textColor,
+        font: { weight: 'bold', size: 12 }
+      }
+    }
+  };
 
   // Chart Chấm Công
   const ctxCong = document.getElementById('chartChamCong');
@@ -1612,10 +1641,7 @@ function renderDashboard() {
           borderWidth: 1
         }]
       },
-      options: {
-        responsive: true,
-        scales: { y: { beginAtZero: true } }
-      }
+      options: commonOptions
     });
   }
 
@@ -1635,10 +1661,7 @@ function renderDashboard() {
           borderWidth: 1
         }]
       },
-      options: {
-        responsive: true,
-        scales: { y: { beginAtZero: true } }
-      }
+      options: commonOptions
     });
   }
 }
