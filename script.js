@@ -1140,6 +1140,9 @@ function fetchDataFromServer() {
         if (document.getElementById('tab-thongke').classList.contains('active')) {
           renderThongKeTable();
         }
+        if (document.getElementById('tab-tongquan').classList.contains('active')) {
+          renderDashboard();
+        }
 
         showToast(`Đã tải dữ liệu tháng ${currentMonthYear}`);
       }
