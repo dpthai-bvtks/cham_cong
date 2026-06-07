@@ -2030,7 +2030,7 @@ function renderQuyTab() {
 
   reversedData.forEach((item) => {
     const tr = document.createElement('tr');
-    tr.style.borderBottom = '1px solid #f1f5f9';
+    tr.style.borderBottom = '1px solid var(--border-color)';
     tr.innerHTML = `
       <td style="padding: 15px 20px;">${item.ngay.split('-').reverse().join('/')}</td>
       <td style="padding: 15px 20px;">
@@ -2038,11 +2038,11 @@ function renderQuyTab() {
           ${item.loai === 'thu' ? 'Thu' : 'Chi'}
         </span>
       </td>
-      <td style="white-space: normal; padding: 15px 20px; color: #334155;">${item.noidung}</td>
+      <td style="white-space: normal; padding: 15px 20px; color: var(--text-main);">${item.noidung}</td>
       <td style="padding: 15px 20px; text-align: center; font-weight:600; ${item.loai === 'thu' ? 'color:#22c55e;' : 'color:#ef4444;'}">
         ${item.loai === 'thu' ? '+' : '-'}${item.tien.toLocaleString('vi-VN')} đ
       </td>
-      <td style="padding: 15px 20px; text-align: center; font-weight:600; color: #0f172a;">
+      <td style="padding: 15px 20px; text-align: center; font-weight:600; color: var(--text-main);">
         ${item.balance.toLocaleString('vi-VN')} đ
       </td>
       <td style="padding: 15px 20px; text-align: right;">
