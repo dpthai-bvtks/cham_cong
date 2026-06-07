@@ -284,19 +284,10 @@
       <!-- TAB: Quản Lý Quỹ Khoa -->
       <section id="tab-quy" class="tab-pane">
         <!-- Header -->
-        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; gap: 15px;">
-          <div>
-            <h2 style="font-size: 1.6rem; font-weight: 700; color: #1a202c; margin: 0 0 5px 0;">Quản lý Thu/Chi</h2>
-            <p style="color: #718096; font-size: 0.95rem; margin: 0;">Theo dõi quỹ đoàn phí và các khoản chi</p>
-          </div>
-          <div style="display: flex; gap: 10px;">
-            <button id="btn-export-quy" style="background-color: #f1f5f9; color: #1e293b; border: none; padding: 10px 15px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s;">
-              <i class='bx bx-download' style="font-size: 1.2rem;"></i> Xuất File Tổng Hợp
-            </button>
-            <button id="btn-open-quy-modal" style="background-color: #e11d48; color: #fff; border: none; padding: 10px 15px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s;">
-              <i class='bx bx-plus' style="font-size: 1.2rem;"></i> Thêm Giao dịch
-            </button>
-          </div>
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+          <button id="btn-export-quy" style="background-color: #f1f5f9; color: #1e293b; border: none; padding: 10px 15px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s;">
+            <i class='bx bx-download' style="font-size: 1.2rem;"></i> Xuất File Tổng Hợp
+          </button>
         </div>
 
         <!-- Cards -->
@@ -335,6 +326,37 @@
           </div>
         </div>
 
+        <!-- Add Transaction Form (Inline) -->
+        <div style="background: #fff; border-radius: 12px; padding: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; margin-bottom: 25px;">
+          <h3 style="color: #3b82f6; font-size: 1.2rem; font-weight: 700; margin: 0 0 20px 0;">Thêm Giao Dịch Mới</h3>
+          <div style="display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end;">
+            <div style="flex: 1; min-width: 150px;">
+              <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #475569; font-size: 0.9rem;">Ngày</label>
+              <input type="date" id="quy-ngay" class="input-field" style="width: 100%; border: 1px solid #e2e8f0;">
+            </div>
+            <div style="flex: 1; min-width: 120px;">
+              <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #475569; font-size: 0.9rem;">Loại</label>
+              <select id="quy-loai" class="input-field" style="width: 100%; border: 1px solid #e2e8f0;">
+                <option value="thu">Thu (+)</option>
+                <option value="chi">Chi (-)</option>
+              </select>
+            </div>
+            <div style="flex: 1.5; min-width: 150px;">
+              <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #475569; font-size: 0.9rem;">Số Tiền (VNĐ)</label>
+              <input type="number" id="quy-tien" placeholder="Nhập số tiền..." class="input-field" style="width: 100%; border: 1px solid #e2e8f0;">
+            </div>
+            <div style="flex: 2; min-width: 200px;">
+              <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #475569; font-size: 0.9rem;">Nội Dung</label>
+              <input type="text" id="quy-noidung" placeholder="Nhập nội dung giao dịch..." class="input-field" style="width: 100%; border: 1px solid #e2e8f0;">
+            </div>
+            <div>
+              <button class="btn btn-primary" id="btn-add-quy" style="height: 42px; display: flex; align-items: center; justify-content: center; gap: 5px; background-color: #4f46e5; border: none; font-weight: 600; padding: 0 20px;">
+                <i class='bx bx-plus'></i> Thêm
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- Table -->
         <div style="background: #fff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; overflow: hidden;">
           <div class="table-container" style="max-height: calc(100vh - 350px);">
@@ -357,41 +379,7 @@
         </div>
       </section>
 
-      <!-- Modal Thêm Giao Dịch -->
-      <div id="quy-modal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 450px;">
-          <div class="modal-header" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 20px;">
-            <h3 style="margin: 0; font-size: 1.3rem; color: #0f172a;">Thêm Giao Dịch</h3>
-          </div>
-          <div class="modal-body">
-            <div style="margin-bottom: 15px;">
-              <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #475569;">Ngày</label>
-              <input type="date" id="quy-ngay" class="input-field" style="width: 100%; border: 1px solid #cbd5e1;">
-            </div>
-            <div style="margin-bottom: 15px;">
-              <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #475569;">Loại giao dịch</label>
-              <select id="quy-loai" class="input-field" style="width: 100%; border: 1px solid #cbd5e1;">
-                <option value="thu">Thu (+)</option>
-                <option value="chi">Chi (-)</option>
-              </select>
-            </div>
-            <div style="margin-bottom: 15px;">
-              <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #475569;">Số Tiền (VNĐ)</label>
-              <input type="number" id="quy-tien" placeholder="Nhập số tiền..." class="input-field" style="width: 100%; border: 1px solid #cbd5e1;">
-            </div>
-            <div style="margin-bottom: 25px;">
-              <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #475569;">Nội Dung</label>
-              <input type="text" id="quy-noidung" placeholder="Ví dụ: Đóng quỹ tháng 6" class="input-field" style="width: 100%; border: 1px solid #cbd5e1;">
-            </div>
-          </div>
-          <div class="modal-footer" style="display: flex; gap: 10px;">
-            <button class="btn" id="btn-close-quy-modal" style="flex: 1; background-color: #f1f5f9; color: #475569; justify-content: center;">Hủy</button>
-            <button class="btn btn-primary" id="btn-add-quy" style="flex: 1; background-color: #e11d48; border-color: #e11d48; justify-content: center;">
-              Lưu Giao Dịch
-            </button>
-          </div>
-        </div>
-      </div>
+
 
       <!-- TAB: Cài Đặt -->
       <section id="tab-caidat" class="tab-pane">

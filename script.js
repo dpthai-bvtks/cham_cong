@@ -1951,16 +1951,7 @@ function initQuyKhoa() {
     btnExport.addEventListener('click', exportQuyToExcel);
   }
 
-  const modal = document.getElementById('quy-modal');
-  const btnOpenModal = document.getElementById('btn-open-quy-modal');
-  const btnCloseModal = document.getElementById('btn-close-quy-modal');
 
-  if (btnOpenModal && modal) {
-    btnOpenModal.addEventListener('click', () => modal.classList.add('show'));
-  }
-  if (btnCloseModal && modal) {
-    btnCloseModal.addEventListener('click', () => modal.classList.remove('show'));
-  }
   
   // Set default date to today
   const dateInput = document.getElementById('quy-ngay');
@@ -2064,7 +2055,6 @@ function addQuyGiaoDich() {
 
   document.getElementById('quy-tien').value = '';
   document.getElementById('quy-noidung').value = '';
-  document.getElementById('quy-modal').classList.remove('show');
 }
 
 function deleteQuyGiaoDich(id) {
