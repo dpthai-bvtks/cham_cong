@@ -224,6 +224,12 @@ function initEmployeeManager() {
 
 function saveEmployeesLocally() {
   localStorage.setItem('med_employees', JSON.stringify(employees));
+  if (GAS_WEBAPP_URL && !GAS_WEBAPP_URL.includes('ĐIỀN_URL_WEB_APP')) {
+    fetch(GAS_WEBAPP_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'saveEmployees', data: employees })
+    }).catch(e => console.error(e));
+  }
 }
 
 let confirmCallback = null;
@@ -1178,13 +1184,23 @@ function fetchDataFromServer() {
         chamCongData = res.data.chamcong || {};
         thuThuatData = res.data.thuthuat || {};
 
+        if (Array.isArray(res.data.quykhoa)) {
+          quyData = res.data.quykhoa;
+          localStorage.setItem('med_quy_khoa', JSON.stringify(quyData));
+          if (document.getElementById('tab-quy').classList.contains('active')) renderQuyTab();
+        }
+
+        if (Array.isArray(res.data.employees) && res.data.employees.length > 0) {
+          employees = res.data.employees;
+        }
+
         Object.keys(chamCongData).forEach(emp => {
           if (!employees.includes(emp)) employees.push(emp);
         });
         Object.keys(thuThuatData).forEach(emp => {
           if (!employees.includes(emp)) employees.push(emp);
         });
-        saveEmployeesLocally();
+        localStorage.setItem('med_employees', JSON.stringify(employees));
 
         renderEmployeesTable();
         renderChamCongTable();
@@ -1991,6 +2007,12 @@ function initQuyKhoa() {
 
 function saveQuyLocally() {
   localStorage.setItem('med_quy_khoa', JSON.stringify(quyData));
+  if (GAS_WEBAPP_URL && !GAS_WEBAPP_URL.includes('ĐIỀN_URL_WEB_APP')) {
+    fetch(GAS_WEBAPP_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'saveQuyKhoa', data: quyData })
+    }).catch(e => console.error(e));
+  }
 }
 
 function renderQuyTab() {

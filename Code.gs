@@ -21,7 +21,9 @@ function doGet(e) {
   if (action === 'getAllData') {
     const chamcong = getFileContent(`chamcong_${monthYear}.json`);
     const thuthuat = getFileContent(`thuthuat_${monthYear}.json`);
-    return createJsonResponse({status: 'success', data: { chamcong: chamcong, thuthuat: thuthuat }});
+    const quykhoa = getFileContent('quykhoa.json');
+    const employees = getFileContent('employees.json');
+    return createJsonResponse({status: 'success', data: { chamcong: chamcong, thuthuat: thuthuat, quykhoa: quykhoa, employees: employees }});
   }
   
   return createJsonResponse({status: 'error', message: 'Invalid GET action'});
@@ -41,6 +43,16 @@ function doPost(e) {
     if (action === 'saveThuThuat') {
       saveFileContent(`thuthuat_${monthYear}.json`, postData.data);
       return createJsonResponse({status: 'success', message: 'Đã lưu thủ thuật'});
+    }
+
+    if (action === 'saveQuyKhoa') {
+      saveFileContent('quykhoa.json', postData.data);
+      return createJsonResponse({status: 'success', message: 'Đã lưu quỹ khoa'});
+    }
+
+    if (action === 'saveEmployees') {
+      saveFileContent('employees.json', postData.data);
+      return createJsonResponse({status: 'success', message: 'Đã lưu danh sách nhân viên'});
     }
     
     return createJsonResponse({status: 'error', message: 'Invalid POST action'});
