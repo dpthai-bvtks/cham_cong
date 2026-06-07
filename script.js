@@ -71,6 +71,11 @@ function initTabs() {
       topAddEmployee.style.display = (tabId === 'tab-nhanvien') ? 'flex' : 'none';
     }
 
+    const topAuditActions = document.getElementById('top-audit-actions');
+    if (topAuditActions) {
+      topAuditActions.style.display = (tabId === 'tab-kiemtra') ? 'flex' : 'none';
+    }
+
     if (tabId === 'tab-thongke') {
       renderThongKeTable();
     }
