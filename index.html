@@ -100,6 +100,10 @@
           <i class='bx bx-user-pin'></i>
           <span>Danh Sách Nhân Viên</span>
         </li>
+        <li data-tab="tab-quy">
+          <i class='bx bx-wallet'></i>
+          <span>Quản Lý Quỹ Khoa</span>
+        </li>
         <li data-tab="tab-kiemtra">
           <i class='bx bx-check-shield'></i>
           <span>Kiểm Tra Lỗi</span>
@@ -283,6 +287,84 @@
             </table>
           </div>
           <p class="note">* Danh sách này dùng chung cho toàn bộ ứng dụng và sẽ được lưu tự động cục bộ.</p>
+        </div>
+      </section>
+
+      <!-- TAB: Quản Lý Quỹ Khoa -->
+      <section id="tab-quy" class="tab-pane">
+        <div class="card" style="margin-bottom: 20px;">
+          <div class="card-header">
+            <h3>Tổng Quan Quỹ Khoa</h3>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 20px; padding: 20px;">
+            <div style="flex: 1; min-width: 200px; background: rgba(76, 201, 240, 0.1); padding: 20px; border-radius: 8px; border-left: 5px solid var(--success-dark); text-align: center;">
+              <h4 style="color: var(--text-muted); margin-bottom: 5px; font-weight: 500;">Tổng Thu</h4>
+              <h2 id="quy-tong-thu" style="color: var(--success-dark); margin: 0;">0 đ</h2>
+            </div>
+            <div style="flex: 1; min-width: 200px; background: rgba(247, 37, 133, 0.1); padding: 20px; border-radius: 8px; border-left: 5px solid var(--warning-color); text-align: center;">
+              <h4 style="color: var(--text-muted); margin-bottom: 5px; font-weight: 500;">Tổng Chi</h4>
+              <h2 id="quy-tong-chi" style="color: var(--warning-color); margin: 0;">0 đ</h2>
+            </div>
+            <div style="flex: 1; min-width: 200px; background: rgba(67, 97, 238, 0.1); padding: 20px; border-radius: 8px; border-left: 5px solid var(--primary-color); text-align: center;">
+              <h4 style="color: var(--text-muted); margin-bottom: 5px; font-weight: 500;">Tồn Quỹ Hiện Tại</h4>
+              <h2 id="quy-ton" style="color: var(--primary-color); margin: 0;">0 đ</h2>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>Danh Sách Giao Dịch</h3>
+            <div class="actions">
+              <button class="btn btn-success" id="btn-export-quy"><i class='bx bx-export'></i> Xuất Báo Cáo Excel</button>
+            </div>
+          </div>
+          <div style="padding: 20px; border-bottom: 1px solid var(--border-color); background-color: var(--bg-main);">
+            <h4 style="margin-bottom: 15px; color: var(--primary-color);">Thêm Giao Dịch Mới</h4>
+            <div style="display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end;">
+              <div style="flex: 1; min-width: 150px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 500; font-size: 0.9rem;">Ngày</label>
+                <input type="date" id="quy-ngay" class="input-field" style="width: 100%;">
+              </div>
+              <div style="flex: 1; min-width: 120px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 500; font-size: 0.9rem;">Loại</label>
+                <select id="quy-loai" class="input-field" style="width: 100%;">
+                  <option value="thu">Thu (+)</option>
+                  <option value="chi">Chi (-)</option>
+                </select>
+              </div>
+              <div style="flex: 1.5; min-width: 150px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 500; font-size: 0.9rem;">Số Tiền (VNĐ)</label>
+                <input type="number" id="quy-tien" placeholder="Nhập số tiền..." class="input-field" style="width: 100%;">
+              </div>
+              <div style="flex: 2; min-width: 200px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 500; font-size: 0.9rem;">Nội Dung</label>
+                <input type="text" id="quy-noidung" placeholder="Nhập nội dung giao dịch..." class="input-field" style="width: 100%;">
+              </div>
+              <div>
+                <button class="btn btn-primary" id="btn-add-quy" style="height: 42px; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                  <i class='bx bx-plus'></i> Thêm
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width: 50px;">STT</th>
+                  <th style="width: 120px;">Ngày</th>
+                  <th style="width: 100px;" class="text-center">Loại</th>
+                  <th>Nội dung</th>
+                  <th style="width: 150px;" class="text-right">Số Tiền (VNĐ)</th>
+                  <th style="width: 100px;" class="text-center">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="quy-body">
+                <!-- Danh sách giao dịch -->
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 

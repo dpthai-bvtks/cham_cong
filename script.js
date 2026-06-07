@@ -9,6 +9,7 @@ let currentMonthYear = '';
 let employees = JSON.parse(localStorage.getItem('med_employees')) || [];
 let chamCongData = {}; // { "Nguyễn Văn A": { "1": "sang", "2": "ca-ngay", ... } }
 let thuThuatData = {}; // { "Nguyễn Văn A": { loai1: 0, loai2: 0, loai3: 0 } }
+let quyData = JSON.parse(localStorage.getItem('med_quy_khoa')) || [];
 
 let saveTimeout = null;
 
@@ -24,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initModal();
   initEditModal();
   initErrorChecker();
+  initQuyKhoa();
 });
 
 // --- UI & TAB QUẢN LÝ ---
@@ -58,7 +60,7 @@ function initTabs() {
     const activePane = document.getElementById(tabId);
     if (activePane) activePane.classList.add('active');
 
-    if (tabId === 'tab-kiemtra' || tabId === 'tab-nhanvien' || tabId === 'tab-caidat') {
+    if (tabId === 'tab-kiemtra' || tabId === 'tab-nhanvien' || tabId === 'tab-caidat' || tabId === 'tab-quy') {
       dateSelector.style.display = 'none';
     } else {
       dateSelector.style.display = '';
@@ -69,6 +71,9 @@ function initTabs() {
     }
     if (tabId === 'tab-tongquan') {
       renderDashboard();
+    }
+    if (tabId === 'tab-quy') {
+      renderQuyTab();
     }
 
     // Đóng sidebar trên mobile sau khi chọn
@@ -1921,3 +1926,183 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+// --- QUẢN LÝ QUỸ KHOA ---
+function initQuyKhoa() {
+  const btnAdd = document.getElementById('btn-add-quy');
+  if (btnAdd) {
+    btnAdd.addEventListener('click', addQuyGiaoDich);
+  }
+
+  const btnExport = document.getElementById('btn-export-quy');
+  if (btnExport) {
+    btnExport.addEventListener('click', exportQuyToExcel);
+  }
+  
+  // Set default date to today
+  const dateInput = document.getElementById('quy-ngay');
+  if(dateInput) {
+    const today = new Date();
+    dateInput.value = today.toISOString().split('T')[0];
+  }
+}
+
+function saveQuyLocally() {
+  localStorage.setItem('med_quy_khoa', JSON.stringify(quyData));
+}
+
+function renderQuyTab() {
+  let tongThu = 0;
+  let tongChi = 0;
+
+  const tbody = document.getElementById('quy-body');
+  if (!tbody) return;
+  
+  tbody.innerHTML = '';
+
+  // Sắp xếp giảm dần theo ngày
+  const sortedData = [...quyData].sort((a, b) => new Date(b.ngay) - new Date(a.ngay));
+
+  sortedData.forEach((item, idx) => {
+    if (item.loai === 'thu') tongThu += item.tien;
+    else if (item.loai === 'chi') tongChi += item.tien;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="text-center">${idx + 1}</td>
+      <td>${item.ngay}</td>
+      <td class="text-center">
+        <span style="display:inline-block; padding:4px 8px; border-radius:4px; font-size:0.85rem; font-weight:600; color:#fff; background-color: ${item.loai === 'thu' ? 'var(--success-dark)' : 'var(--warning-color)'};">
+          ${item.loai === 'thu' ? 'Thu' : 'Chi'}
+        </span>
+      </td>
+      <td style="white-space: normal;">${item.noidung}</td>
+      <td class="text-right" style="font-weight:bold; color: ${item.loai === 'thu' ? 'var(--success-dark)' : 'var(--warning-color)'};">
+        ${item.loai === 'thu' ? '+' : '-'}${item.tien.toLocaleString('vi-VN')}
+      </td>
+      <td class="text-center">
+        <button class="btn btn-danger" onclick="deleteQuyGiaoDich('${item.id}')" style="padding: 4px 10px; font-size: 0.8rem; width:100%;"><i class='bx bx-trash'></i> Xóa</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('quy-tong-thu').innerText = tongThu.toLocaleString('vi-VN') + ' đ';
+  document.getElementById('quy-tong-chi').innerText = tongChi.toLocaleString('vi-VN') + ' đ';
+  document.getElementById('quy-ton').innerText = (tongThu - tongChi).toLocaleString('vi-VN') + ' đ';
+}
+
+function addQuyGiaoDich() {
+  const ngay = document.getElementById('quy-ngay').value;
+  const loai = document.getElementById('quy-loai').value;
+  const tien = parseInt(document.getElementById('quy-tien').value);
+  const noidung = document.getElementById('quy-noidung').value.trim();
+
+  if (!ngay || isNaN(tien) || tien <= 0 || !noidung) {
+    alert('Vui lòng nhập đầy đủ Ngày, Số tiền hợp lệ và Nội dung!');
+    return;
+  }
+
+  const newItem = {
+    id: Date.now().toString(),
+    ngay: ngay,
+    loai: loai,
+    tien: tien,
+    noidung: noidung
+  };
+
+  quyData.push(newItem);
+  saveQuyLocally();
+  renderQuyTab();
+  showToast('Đã thêm giao dịch quỹ');
+
+  document.getElementById('quy-tien').value = '';
+  document.getElementById('quy-noidung').value = '';
+}
+
+function deleteQuyGiaoDich(id) {
+  if (confirm('Bạn có chắc chắn muốn xóa giao dịch này?')) {
+    quyData = quyData.filter(item => item.id !== id);
+    saveQuyLocally();
+    renderQuyTab();
+    showToast('Đã xóa giao dịch quỹ');
+  }
+}
+
+async function exportQuyToExcel() {
+  if (quyData.length === 0) {
+    alert("Không có dữ liệu giao dịch nào để xuất báo cáo!");
+    return;
+  }
+
+  showLoading(true);
+  try {
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Quy_Khoa');
+
+    sheet.columns = [
+      { header: 'STT', key: 'stt', width: 5 },
+      { header: 'Ngày', key: 'ngay', width: 15 },
+      { header: 'Loại', key: 'loai', width: 10 },
+      { header: 'Nội Dung', key: 'noidung', width: 40 },
+      { header: 'Số Tiền (VNĐ)', key: 'tien', width: 20 }
+    ];
+
+    sheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    sheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4361EE' } };
+    sheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
+
+    let tongThu = 0;
+    let tongChi = 0;
+
+    const sortedData = [...quyData].sort((a, b) => new Date(a.ngay) - new Date(b.ngay));
+
+    sortedData.forEach((item, index) => {
+      if (item.loai === 'thu') tongThu += item.tien;
+      else if (item.loai === 'chi') tongChi += item.tien;
+
+      sheet.addRow({
+        stt: index + 1,
+        ngay: item.ngay,
+        loai: item.loai === 'thu' ? 'Thu' : 'Chi',
+        noidung: item.noidung,
+        tien: item.loai === 'thu' ? item.tien : -item.tien
+      });
+    });
+
+    const lastRow = sortedData.length + 2;
+    sheet.getCell(`C${lastRow}`).value = 'TỔNG THU:';
+    sheet.getCell(`C${lastRow}`).font = { bold: true };
+    sheet.getCell(`E${lastRow}`).value = tongThu;
+    sheet.getCell(`E${lastRow}`).font = { bold: true };
+    
+    sheet.getCell(`C${lastRow + 1}`).value = 'TỔNG CHI:';
+    sheet.getCell(`C${lastRow + 1}`).font = { bold: true };
+    sheet.getCell(`E${lastRow + 1}`).value = tongChi;
+    sheet.getCell(`E${lastRow + 1}`).font = { bold: true };
+
+    sheet.getCell(`C${lastRow + 2}`).value = 'TỒN QUỸ:';
+    sheet.getCell(`C${lastRow + 2}`).font = { bold: true };
+    sheet.getCell(`E${lastRow + 2}`).value = tongThu - tongChi;
+    sheet.getCell(`E${lastRow + 2}`).font = { bold: true, color: { argb: 'FFFF0000' } };
+
+    sheet.getColumn('E').numFmt = '#,##0';
+    sheet.getCell(`E${lastRow}`).numFmt = '#,##0';
+    sheet.getCell(`E${lastRow + 1}`).numFmt = '#,##0';
+    sheet.getCell(`E${lastRow + 2}`).numFmt = '#,##0';
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Bao_Cao_Quy_Khoa.xlsx`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error(error);
+    alert('Lỗi khi xuất báo cáo Quỹ');
+  } finally {
+    showLoading(false);
+  }
+}
