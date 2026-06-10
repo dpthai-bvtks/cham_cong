@@ -1229,12 +1229,12 @@ function fetchDataFromServer() {
         chamCongData = res.data.chamcong || {};
         thuThuatData = res.data.thuthuat || {};
 
-        if (Array.isArray(res.data.quykhoa) && res.data.quykhoa.length > 0) {
+        if (Array.isArray(res.data.quykhoa)) {
           quyData = res.data.quykhoa;
           localStorage.setItem('med_quy_khoa', JSON.stringify(quyData));
           if (document.getElementById('tab-quy').classList.contains('active')) renderQuyTab();
         } else if (quyData && quyData.length > 0) {
-          // Nếu server chưa có dữ liệu nhưng máy hiện tại có, thì tự động đẩy lên server
+          // Nếu server chưa có dữ liệu (trả về {}) nhưng máy hiện tại có, thì tự động đẩy lên server
           saveQuyLocally();
         }
 
@@ -2073,10 +2073,23 @@ function initQuyKhoa() {
 function saveQuyLocally() {
   localStorage.setItem('med_quy_khoa', JSON.stringify(quyData));
   if (GAS_WEBAPP_URL && !GAS_WEBAPP_URL.includes('ĐIỀN_URL_WEB_APP')) {
+    updateSyncStatus('saving');
     fetch(GAS_WEBAPP_URL, {
       method: 'POST',
       body: JSON.stringify({ action: 'saveQuyKhoa', data: quyData })
-    }).catch(e => console.error(e));
+    })
+    .then(res => res.json())
+    .then(res => {
+      if (res.status === 'success') {
+        updateSyncStatus('success');
+      } else {
+        updateSyncStatus('error');
+      }
+    })
+    .catch(e => {
+      console.error(e);
+      updateSyncStatus('error');
+    });
   }
 }
 
