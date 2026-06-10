@@ -183,6 +183,7 @@ body {
   padding: 30px;
   flex: 1;
   overflow-y: auto;
+  scroll-margin-top: 150px;
 }
 
 .tab-pane.active {
